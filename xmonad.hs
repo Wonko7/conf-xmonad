@@ -20,6 +20,7 @@ import XMonad.Hooks.FadeInactive
 
 -- actions
 import XMonad.Actions.CycleWS
+import XMonad.Actions.CycleWindows
 import XMonad.Actions.WindowGo
 import qualified XMonad.Actions.Search as S
 import XMonad.Actions.Search
@@ -32,6 +33,9 @@ import XMonad.Actions.UpdatePointer
 import XMonad.Actions.TopicSpace
 import XMonad.Actions.WithAll
 import XMonad.Actions.GroupNavigation
+import XMonad.Layout.PerWorkspace
+import XMonad.Prompt.Window
+import XMonad.Actions.RotSlaves
 
 -- utils
 -- -- (scratchpadSpawnAction, scratchpadManageHook, scratchpadFilterOutWorkspace)
@@ -98,21 +102,27 @@ main = do
 --data NOSPACING = NOSPACING deriving (Read, Show, Eq, Typeable)
 --instance Transformer NOSPACING Window where
 --	transform _ x k = k (spacing 0 x) (\(spacing Int x') -> x')
+--	$ avoidStruts $ tiled ||| (magicFocus $ Mirror tiled) ||| Mirror accor ||| XMonad.Layout.Grid.Grid
 
-myLayouts = id
-	. noBorders
---	. mkToggle (NOSPACING)
---	. mkToggle (BORDERS ?? SMARTBORDERS ?? EOT)
-	. mkToggle (NOBORDERS ?? FULL ?? EOT)
-	$ avoidStruts $ tiled ||| (magicFocus $ Mirror tiled) ||| Mirror accor ||| XMonad.Layout.Grid.Grid
+myLayouts = id . noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts $ spacing 15 $
+	    onWorkspaces ["6", "7", "8"] workLayouts $
+	    onWorkspace "9" imLayouts $
+	    onWorkspace "1" mediaLayouts $
+	    defLayouts
   where
+     workLayouts  = (magicFocus $ Mirror wtiled) ||| Mirror accor ||| wtiled
+     defLayouts   = tiled ||| (magicFocus $ Mirror wtiled) ||| Mirror accor
+     imLayouts    = imtiled ||| (magicFocus $ Mirror wtiled) ||| Mirror accor
+     mediaLayouts = Mirror accor ||| tiled ||| (magicFocus $ Mirror wtiled)
      -- default tiling algorithm partitions the screen into two panes
-     tiled   = spacing 5 $ Tall nmaster delta ratio
-     accor   = spacing 5 $ Accordion
+     tiled    = Tall nmaster delta ratio
+     wtiled   = Tall nmaster delta (4/5)
+     imtiled  = Tall nmaster delta (4/5)
+     accor    = Accordion
      -- The default number of windows in the master pane
      nmaster = 1
      -- Default proportion of screen occupied by master pane
-     ratio   = 1/2
+     ratio   = 2/3
      -- Percent of screen to increment by when resizing panes
      delta   = 3/100
 
@@ -120,7 +130,8 @@ myLayouts = id
 myBorderWidth = 0
 
 myTerminal :: String
-myTerminal = "urxvtc"
+myTerminal = "terminology"
+-- myTerminal = "urxvtc"
 myBrowser  = "firefox"
 
 spawnTS name = spawn $ "LOAD_TMUX_SESSION=" ++ name ++ " " ++ myTerminal
@@ -137,8 +148,10 @@ myTopConf = defaultTopicConfig
     [ ("1", spawnTS "def")
     , ("2", spawn "gnome-control-center sound")
     , ("3", spawn "firefox")
-    , ("6", spawnTS "clj")
-    , ("8", spawnTS "tor")
+    -- , ("4", spawn ". conf/zsh/env.zsh && kontact")
+    -- , ("6", spawnTS "clj")
+    , ("7", spawnTS "mix")
+    , ("8", spawnTS "aqua")
     , ("9", spawn "pidgin")
     ]
   }
@@ -152,19 +165,21 @@ toggleTopics = do addTopicHist;
 goToTopic i = do addTopicHist;
                  switchTopic myTopConf i;
 
-prevTS = do addTopicHist; 
+prevTS = do addTopicHist;
 	    prevWS;
 
-nextTS = do addTopicHist; 
+nextTS = do addTopicHist;
 	    nextWS;
 
 
+
+
 myLogHook :: X ()
-myLogHook = updatePointer (Relative 0.5 0.5)
+myLogHook = -- updatePointer (Relative 0.5 0.5)
             -- >> fadeInactiveLogHook 0.7
-            >> historyHook
+            historyHook
 	    >> (fadeOutLogHook $ fadeIf ((isUnfocused) <||> (className =? "Conky")) 0.7)
-            -- >> fadeInactiveLogHook 0.8 
+            -- >> fadeInactiveLogHook 0.8
 
 
 myFocusFollowsMouse :: Bool
@@ -201,7 +216,9 @@ ks conf@(XConfig {XMonad.modMask = modm}) = [
     ---------
     , ((modm,               xK_space     ), toggleTopics)
     , ((modm .|. shiftMask, xK_space     ), nextMatch History (return True))
-    , ((modm            ,  xK_BackSpace  ), nextMatch History (return True)) 
+    --, ((modm            ,  xK_BackSpace  ), cycleRecentWindows [xK_Alt_L] xK_j xK_k)
+    --, ((modm            ,  xK_BackSpace  ), goToSelected gridselectWindow)
+    --, ((modm            ,  xK_BackSpace  ), nextMatch History (return True))
     , ((modm,               xK_y         ), currentTopicAction myTopConf)
     -- Move focus to the next window
     , ((modm,               xK_j         ), windows W.focusDown)
