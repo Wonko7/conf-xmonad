@@ -251,7 +251,7 @@ ks conf@(XConfig {XMonad.modMask = modm}) = [
     -- launch stuff!
     ,  ((modm               ,  xK_slash  ),  namedScratchpadAction scratchpads "notes")
     ,  ((modm               ,  xK_v      ),  spawn "~/local/bin/gvim")
-    ,  ((modm .|. shiftMask ,  xK_b      ),  spawn "export XDG_CONFIG_HOME=~/conf/uzbl/config && export XDG_DATA_HOME=~/conf/uzbl/data && chromium --enable-vertical-tabs")
+    ,  ((modm .|. shiftMask ,  xK_b      ),  spawn "chromium --enable-vertical-tabs")
  -- ,  ((modm .|. shiftMask ,  xK_g      ),  spawn "pidgin")
     ,  ((modm .|. shiftMask ,  xK_z      ),  spawn "xscreensaver-command --lock")
     ,  ((modm .|. shiftMask ,  xK_i      ),  spawn "urxvtc")
