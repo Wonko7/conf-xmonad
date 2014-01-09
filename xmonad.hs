@@ -148,7 +148,7 @@ myTopConf = defaultTopicConfig
     [ ("1", spawnTS "def")
     , ("2", spawn "gnome-control-center sound")
     , ("3", spawn "firefox")
-    -- , ("4", spawn ". conf/zsh/env.zsh && kontact")
+    , ("4", spawn "kontact")
     -- , ("6", spawnTS "clj")
     , ("7", spawnTS "mix")
     , ("8", spawnTS "aqua")
