@@ -5,7 +5,7 @@ import Control.Monad (liftM)
 
 -- Import stuff
 import XMonad
-import XMonad.Config.Gnome
+import XMonad.Config.Kde
 import qualified XMonad.StackSet as W
 import qualified Data.Map as M
 import XMonad.Util.EZConfig(additionalKeys)
@@ -70,7 +70,7 @@ import XMonad.Layout.LayoutHints
 import XMonad.Layout.MagicFocus
 
 main = do
-	xmonad $ ewmh defaultConfig
+	xmonad $ ewmh kdeConfig
 		{ keys			= myKeys
 		, terminal		= myTerminal
 		, workspaces		= myTopics
@@ -82,6 +82,7 @@ main = do
 		, borderWidth		= myBorderWidth
 		, manageHook		= composeAll
 			[ manageDocks
+			-- , className =? "krunner" --> doIgnore
 			-- , resource =? "Conky" --> doIgnore
 			, namedScratchpadManageHook scratchpads ]
 		}
@@ -145,14 +146,14 @@ myTopConf = defaultTopicConfig
   , defaultTopic = "1"
   , defaultTopicAction = const $ return ()
   , topicActions = M.fromList $
-    [ ("1", spawnTS "def")
-    , ("2", spawn "gnome-control-center sound")
+    [ ("1", spawnTS "def-gtoo")
+    --, ("2", spawn "gnome-control-center sound")
     , ("3", spawn "firefox")
     -- , ("4", spawn ". conf/zsh/env.zsh && kontact")
     -- , ("6", spawnTS "clj")
     , ("7", spawnTS "mix")
     , ("8", spawnTS "aqua")
-    , ("9", spawn "pidgin")
+    --, ("9", spawn "pidgin")
     ]
   }
 
@@ -194,7 +195,8 @@ scratchpads = [ NS "notes" "~/local/bin/gvim --role notes ~/TODO" (role =? "note
 
 ks conf@(XConfig {XMonad.modMask = modm}) = [
     -- terminal
-      ((modm, xK_Return                  ), spawnTS "def")
+      ((modm, xK_Return                  ), spawnTS "def-gtoo")
+    , ((modm .|. shiftMask, xK_Return    ), spawn myTerminal)
     -- close focused window
     , ((modm .|. shiftMask, xK_c         ), kill)
     ---------
@@ -236,15 +238,16 @@ ks conf@(XConfig {XMonad.modMask = modm}) = [
     -- Increment the number of windows in the master area
     , ((modm,               xK_comma     ), sendMessage (IncMasterN 1))
     , ((modm,               xK_period    ), sendMessage (IncMasterN (-1)))
-    ---------
-    -- Toggle the status bar gap --  Use this binding with avoidStruts from Hooks.ManageDocks.
+	---------
+	-- Toggle the status bar gap --  Use this binding with avoidStruts from Hooks.ManageDocks.
     , ((modm,               xK_b         ),  sendMessage  ToggleStruts)
-    -- Push window back into tiling
+	-- Push window back into tiling
     , ((modm,               xK_t         ), sinkAll)
-    --------- reset mouse pointer
+	--------- reset mouse pointer
     ,  ((modm               ,  xK_z      ),  updatePointer $ Relative 0.5 0.5) -- nope
-    -- Quit xmonad
-    ,  ((modm .|. shiftMask ,  xK_q      ), io (exitWith ExitSuccess))
+	-- Quit xmonad
+    -- ,  ((modm .|. shiftMask ,  xK_q      ), io (exitWith ExitSuccess))
+    ,  ((modm .|. shiftMask ,  xK_q      ), spawn "qdbus org.kde.ksmserver /KSMServer logout -1 -1 -1")
     -- Restart xmonad
     ,  ((modm               , xK_q       ),  spawn  "xmonad  --recompile; xmonad --restart")
     ---------
