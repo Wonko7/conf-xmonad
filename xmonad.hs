@@ -153,7 +153,7 @@ myTopConf = defaultTopicConfig
     -- , ("6", spawnTS "clj")
     , ("7", spawnTS "mix")
     , ("8", spawnTS "aqua")
-    --, ("9", spawn "pidgin")
+    , ("9", spawn "kopete")
     ]
   }
 
