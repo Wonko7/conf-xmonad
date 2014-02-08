@@ -80,7 +80,15 @@ main = do
 		-- , handleEventHook	= myEventHook
 		, focusFollowsMouse	= myFocusFollowsMouse
 		, borderWidth		= myBorderWidth
-		, manageHook		= composeAll
+		, manageHook		= composeOne
+		        [ transience
+			, resource  =? "desktop_window" -?> doIgnore
+			, resource  =? "trayer"         -?> doIgnore
+			, isKDETrayWindow               -?> doIgnore
+			, resource  =? "kdesktop"       -?> doIgnore
+			, resource  =? "Dialog"         -?> doFloat
+			]
+			<+> composeAll
 			[ manageDocks
 			-- , className =? "krunner" --> doIgnore
 			-- , resource =? "Conky" --> doIgnore
@@ -149,9 +157,9 @@ myTopConf = defaultTopicConfig
     [ ("1", spawnTS "def-gtoo")
     --, ("2", spawn "gnome-control-center sound")
     , ("3", spawn "firefox")
-    -- , ("4", spawn ". conf/zsh/env.zsh && kontact")
+    , ("4", spawn "kontact")
     -- , ("6", spawnTS "clj")
-    , ("7", spawnTS "mix")
+    --, ("7", spawnTS "mix")
     , ("8", spawnTS "aqua")
     , ("9", spawn "kopete")
     ]
@@ -259,7 +267,7 @@ ks conf@(XConfig {XMonad.modMask = modm}) = [
     ,  ((modm .|. shiftMask ,  xK_z      ),  spawn "xscreensaver-command --lock")
     ,  ((modm .|. shiftMask ,  xK_i      ),  spawn "urxvtc")
     ,  ((modm .|. shiftMask ,  xK_period ),  spawnTS "clj")
-    ,  ((modm .|. shiftMask ,  xK_t      ),  spawn "transmission-gtk")
+    ,  ((modm .|. shiftMask ,  xK_t      ),  spawn "transmission-qt")
     ,  ((modm .|. shiftMask,   xK_m	 ),  spawn "exaile") -- ; todo:change: toggle max
     ]
     ++
