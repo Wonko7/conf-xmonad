@@ -81,11 +81,12 @@ main = do
 		, focusFollowsMouse	= myFocusFollowsMouse
 		, borderWidth		= myBorderWidth
 		, manageHook		= composeOne
-		        [ transience
-			, resource  =? "desktop_window" -?> doIgnore
-			, resource  =? "trayer"         -?> doIgnore
-			, isKDETrayWindow               -?> doIgnore
-			, resource  =? "kdesktop"       -?> doIgnore
+		        [
+			-- transience
+			  resource  =? "desktop_window" -?> doFloat
+			, resource  =? "trayer"         -?> doFloat
+			, isKDETrayWindow               -?> doFloat
+			, resource  =? "kdesktop"       -?> doFloat
 			, resource  =? "Dialog"         -?> doFloat
 			]
 			<+> composeAll
@@ -249,12 +250,16 @@ ks conf@(XConfig {XMonad.modMask = modm}) = [
 	---------
 	-- Toggle the status bar gap --  Use this binding with avoidStruts from Hooks.ManageDocks.
     , ((modm,               xK_b         ),  sendMessage  ToggleStruts)
+    , ((modm .|. shiftMask, xK_b         ),  SM.submap . M.fromList $
+		    [ ((0, xK_c),     spawn "chromium")
+		    , ((0, xK_f),     spawn "firefox")
+		    , ((0, xK_o),     spawn "opera")])
 	-- Push window back into tiling
     , ((modm,               xK_t         ), sinkAll)
 	--------- reset mouse pointer
     ,  ((modm               ,  xK_z      ),  updatePointer $ Relative 0.5 0.5) -- nope
 	-- Quit xmonad
-    -- ,  ((modm .|. shiftMask ,  xK_q      ), io (exitWith ExitSuccess))
+-- ,  ((modm .|. shiftMask ,  xK_q      ), io (exitWith ExitSuccess))
     ,  ((modm .|. shiftMask ,  xK_q      ), spawn "qdbus org.kde.ksmserver /KSMServer logout -1 -1 -1")
     -- Restart xmonad
     ,  ((modm               , xK_q       ),  spawn  "xmonad  --recompile; xmonad --restart")
@@ -262,8 +267,7 @@ ks conf@(XConfig {XMonad.modMask = modm}) = [
     -- launch stuff!
     ,  ((modm               ,  xK_slash  ),  namedScratchpadAction scratchpads "notes")
     ,  ((modm               ,  xK_v      ),  spawn "~/local/bin/gvim")
-    ,  ((modm .|. shiftMask ,  xK_b      ),  spawn "chromium --enable-vertical-tabs")
- -- ,  ((modm .|. shiftMask ,  xK_g      ),  spawn "pidgin")
+    -- ,  ((modm .|. shiftMask ,  xK_g      ),  spawn "pidgin")
     ,  ((modm .|. shiftMask ,  xK_z      ),  spawn "xscreensaver-command --lock")
     ,  ((modm .|. shiftMask ,  xK_i      ),  spawn "urxvtc")
     ,  ((modm .|. shiftMask ,  xK_period ),  spawnTS "clj")
