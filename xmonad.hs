@@ -117,13 +117,13 @@ main = do
 myLayouts = id . noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts $ spacing 15 $
 	    onWorkspaces ["6", "7", "8"] workLayouts $
 	    onWorkspace "9" imLayouts $
-	    onWorkspace "1" mediaLayouts $
+	    -- onWorkspace "1" mediaLayouts $
 	    defLayouts
   where
-     workLayouts  = (magicFocus $ Mirror wtiled) ||| Mirror accor ||| wtiled
-     defLayouts   = tiled ||| (magicFocus $ Mirror wtiled) ||| Mirror accor
-     imLayouts    = imtiled ||| (magicFocus $ Mirror wtiled) ||| Mirror accor
-     mediaLayouts = Mirror accor ||| tiled ||| (magicFocus $ Mirror wtiled)
+     workLayouts  = (magicFocus $ Mirror wtiled) ||| (magicFocus $ wtiled) ||| Mirror tiled ||| tiled
+     defLayouts   = tiled ||| (magicFocus $ Mirror wtiled) ||| (magicFocus $ wtiled) ||| Mirror tiled
+     imLayouts    = imtiled ||| (magicFocus $ Mirror wtiled)
+     -- mediaLayouts = Mirror accor ||| tiled ||| (magicFocus $ Mirror wtiled)
      -- default tiling algorithm partitions the screen into two panes
      tiled    = Tall nmaster delta ratio
      wtiled   = Tall nmaster delta (4/5)
