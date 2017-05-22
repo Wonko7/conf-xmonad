@@ -138,7 +138,7 @@ main = do
 
 myLayouts = id . noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts $ equalSpacing 30 0 0 5 $
 	    onWorkspaces ["6", "7", "8"] workLayouts $
-	    onWorkspace "4" browsersLayouts $
+	    onWorkspaces ["3", "4"] browsersLayouts $
 	    --onWorkspace "9" imLayouts $
 	    --onWorkspace "9" imLayouts $
 	    -- onWorkspace "1" mediaLayouts $
@@ -162,7 +162,7 @@ myLayouts = id . noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts $
      --telRoster	    = (Role "MainWindow")
 
 
-     browsersLayouts   = accor ||| tiled ||| (magicFocus $ Mirror wtiled) ||| (magicFocus $ wtiled) ||| Mirror tiled
+     browsersLayouts   = (Mirror accor) ||| (magicFocus $ wtiled) ||| accor ||| tiled ||| (magicFocus $ Mirror wtiled) ||| Mirror tiled
      -- mediaLayouts = Mirror accor ||| tiled ||| (magicFocus $ Mirror wtiled)
      -- default tiling algorithm partitions the screen into two panes
      --
@@ -200,11 +200,11 @@ myTopConf = defaultTopicConfig
   , topicActions = M.fromList $
     [ ("1", spawnTS "gentoo")
     --, ("2", spawn "gnome-control-center sound")
-    , ("3", spawnHere "firefox")
-    , ("4", spawnHere "./local/tor-browser_en-US/start-tor-browser")
+    , ("3", spawnHere "firefox -P default" >> spawnHere "./local/tor-browser_en-US/start-tor-browser")
+    , ("4", spawnHere "firefox -P kikoolol" >> spawnHere "chromium")
     -- , ("6", spawnTS "clj")
     --, ("7", spawnTS "mix")
-    , ("8", spawnTS "aqua")
+    , ("8", spawnTS "reader")
     --, ("9", spawnHere "pidgin" >> spawnHere "ktp-contactlist" >> spawnHere "konversation")
     , ("9", spawnTS "chat")
     ]
