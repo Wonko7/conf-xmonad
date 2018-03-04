@@ -77,9 +77,7 @@ import XMonad.Layout.LayoutModifier
 import XMonad.Util.WindowProperties
 import XMonad.Layout.EqualSpacing
 
-main = do
-	-- xmonad $ ewmh kdeConfig
-	xmonad $ ewmh desktopConfig
+main = xmonad $ ewmh desktopConfig
 		{ keys			= myKeys
 		, terminal		= myTerminal
 		, workspaces		= myTopics
@@ -115,7 +113,7 @@ main = do
 			, className =? "lxqt-panel" --> doIgnore
 			-- , className =? "krunner" --> doIgnore
 			-- , resource =? "Conky" --> doIgnore
-			, namedScratchpadManageHook scratchpads ]
+			]
 		}
 
 
@@ -232,139 +230,132 @@ myLogHook :: X ()
 myLogHook = -- updatePointer (Relative 0.5 0.5)
             -- >> fadeInactiveLogHook 0.7
             historyHook
-	    >> (fadeOutLogHook $ fadeIf ((isUnfocused) <||> (className =? "Conky") <||> (className =? "lxqt-notificationd")) 0.5)
+	    >> (fadeOutLogHook $ fadeIf (isUnfocused <||> (className =? "Conky") <||> (className =? "lxqt-notificationd")) 0.5)
             -- >> fadeInactiveLogHook 0.8
 
 
 myFocusFollowsMouse :: Bool
 myFocusFollowsMouse = False
 
--- scratch pads;
-scratchpads = [ NS "notes" "~/local/bin/gvim --role notes ~/TODO" (role =? "notes")
-	          (customFloating $ W.RationalRect (1/8) (1/8) (6/8) (6/8))
-              -- , NS "conky" "conky" (className =? "Conky")
-	      --     (customFloating $ W.RationalRect 0 0 1 1 )
-	      ] where role = stringProperty "WM_WINDOW_ROLE"
-
 ks conf@(XConfig {XMonad.modMask = modm}) = [
     -- terminal
-      ((modm, xK_Return                  ), spawnTS "gentoo")
-    , ((modm .|. shiftMask, xK_Return    ), spawnHere myTerminal)
+    ((modm, xK_Return), spawnTS "gentoo")
+  , ((modm .|. shiftMask,   xK_Return),     spawnHere myTerminal)
     -- close focused window
-    , ((modm .|. shiftMask, xK_c         ), kill)
+  , ((modm .|. shiftMask,   xK_c),          kill)
     ---------
     -- Rotate through the available layout algorithms
-    , ((modm,               xK_Tab       ), sendMessage NextLayout)
-    --  Reset the layouts on the current workspace to default
-    , ((modm  .|. shiftMask, xK_Tab      ), setLayout $ XMonad.layoutHook conf)
+  , ((modm,                 xK_Tab),        sendMessage NextLayout)
+    -- Reset the layouts on the current workspace to default
+  , ((modm .|. shiftMask,   xK_Tab),        setLayout $ XMonad.layoutHook conf)
     ---------
     -- Shrink/expand the master area
-    , ((modm,               xK_u         ), sendMessage Shrink)
-    , ((modm,               xK_i         ), sendMessage Expand)
+  , ((modm,                 xK_u),          sendMessage Shrink)
+  , ((modm,                 xK_i),          sendMessage Expand)
     ---------
     -- send window to next WS
-    , ((modm .|. shiftMask, xK_h         ), shiftToPrev >> prevTS)
-    , ((modm .|. shiftMask, xK_l         ), shiftToNext >> nextTS)
+  , ((modm .|. shiftMask,   xK_h),          shiftToPrev >> prevTS)
+  , ((modm .|. shiftMask,   xK_l),          shiftToNext >> nextTS)
     -- next WS
-    , ((modm,               xK_h         ), prevTS)
-    , ((modm,               xK_l         ), nextTS)
+  , ((modm,                 xK_h),          prevTS)
+  , ((modm,                 xK_l),          nextTS)
     ---------
-    , ((modm,               xK_space     ), toggleTopics)
-    , ((modm .|. shiftMask, xK_space     ), nextMatch History (return True))
-    --, ((modm            ,  xK_BackSpace  ), cycleRecentWindows [xK_Alt_L] xK_j xK_k)
-    --, ((modm            ,  xK_BackSpace  ), goToSelected gridselectWindow)
-    --, ((modm            ,  xK_BackSpace  ), nextMatch History (return True))
-    , ((modm,               xK_y         ), currentTopicAction myTopConf)
+  , ((modm,                 xK_space),      toggleTopics)
+  , ((modm .|. shiftMask,   xK_space),      nextMatch History (return True))
+    --, ((modm , xK_BackSpace), cycleRecentWindows [xK_Alt_L] xK_j xK_k)
+    --, ((modm , xK_BackSpace), goToSelected gridselectWindow)
+    --, ((modm , xK_BackSpace), nextMatch History (return True))
+  , ((modm,                 xK_y),          currentTopicAction myTopConf)
     -- Move focus to the next window
-    , ((modm,               xK_j         ), windows W.focusDown)
+  , ((modm,                 xK_j),          windows W.focusDown)
     -- Move focus to the previous window
-    , ((modm,               xK_k         ), windows W.focusUp)
+  , ((modm,                 xK_k),          windows W.focusUp)
     -- Swap the focused window with the next window
-    , ((modm .|. shiftMask, xK_j         ), windows W.swapDown)
+  , ((modm .|. shiftMask,   xK_j),          windows W.swapDown)
     -- Swap the focused window with the previous window
-    , ((modm .|. shiftMask, xK_k         ), windows W.swapUp)
+  , ((modm .|. shiftMask,   xK_k),          windows W.swapUp)
     --------- 2d nav:
-    , ((modm .|. controlMask, xK_j       ), windowGo D False)
-    , ((modm .|. controlMask, xK_k       ), windowGo U False)
-    , ((modm .|. controlMask, xK_h       ), windowGo L False)
-    , ((modm .|. controlMask, xK_l       ), windowGo R False)
+  , ((modm .|. controlMask, xK_j),          windowGo D False)
+  , ((modm .|. controlMask, xK_k),          windowGo U False)
+  , ((modm .|. controlMask, xK_h),          windowGo L False)
+  , ((modm .|. controlMask, xK_l),          windowGo R False)
     ---------
     -- Move focus to the master window
-    , ((modm,               xK_m         ), windows W.swapMaster)
-  --, ((modm .|. shiftMask, xK_m         ), sendMessage (Toggle SMARTBORDERS)) -- ; todo:change: toggle max
-    , ((modm,               xK_f         ), sendMessage (Toggle FULL)) -- ; todo:change: toggle max
+  , ((modm,                 xK_m),          windows W.swapMaster)
+    --, ((modm .|. shiftMask, xK_m), sendMessage (Toggle SMARTBORDERS)) -- ; todo:change: toggle max
+  , ((modm,                 xK_f),          sendMessage (Toggle FULL)) -- ; todo:change: toggle max
     -- Increment the number of windows in the master area
-    , ((modm,               xK_comma     ), sendMessage (IncMasterN 1))
-    , ((modm,               xK_period    ), sendMessage (IncMasterN (-1)))
+  , ((modm,                 xK_comma),      sendMessage (IncMasterN 1))
+  , ((modm,                 xK_period),     sendMessage (IncMasterN (-1)))
     -- pause and resume duns notifs
-    , ((modm,               xK_quoteright),  spawn "killall -SIGUSR1 dunst")
-    , ((modm .|. shiftMask, xK_quoteright),  spawn "killall -SIGUSR2 dunst")
-	---------
-	-- Toggle the status bar gap --  Use this binding with avoidStruts from Hooks.ManageDocks.
-    , ((modm,               xK_b         ),  sendMessage  ToggleStruts)
-    , ((modm .|. shiftMask, xK_b         ),  SM.submap . M.fromList $
-		    [ ((0, xK_q),     spawnHere "qutebrowser")
-		    , ((0, xK_c),     spawnHere "chromium")
-		    , ((0, xK_f),     spawnHere "firefox -P work")
-		    , ((shiftMask, xK_f),     spawnHere "firefox --ProfileManager --new-instance")
-		    , ((0, xK_o),     spawnHere "opera")
-		    , ((0, xK_t),     spawnHere "./local/tor-browser_en-US/start-tor-browser")])
-    , ((modm              , xK_a         ),  SM.submap . M.fromList $
-		    [ ((0, xK_k),     spawnHere "keepassx")
-		    , ((0, xK_c),     spawnHere "calibre")
-		    , ((0, xK_t),     spawnHere "(compton --config ~/.compton.conf&)")
-		    , ((0, xK_p),     spawnHere "pavucontrol")
-		    , ((0, xK_w),     spawnHere "wireshark")
-		    ])
-	-- Push window back into tiling
-    , ((modm,               xK_t         ), sinkAll)
-	--------- reset mouse pointer
-    --,  ((modm               ,  xK_z      ),  updatePointer $ Relative 0.5 0.5) -- nope, never ever use this
-	-- Quit xmonad
--- ,  ((modm .|. shiftMask ,  xK_q      ), io (exitWith ExitSuccess))
-    ,  ((modm .|. shiftMask ,  xK_q      ), spawn "qdbus org.kde.ksmserver /KSMServer logout -1 -1 -1")
+  , ((modm,                 xK_quoteright), spawn "killall -SIGUSR1 dunst")
+  , ((modm .|. shiftMask,   xK_quoteright), spawn "killall -SIGUSR2 dunst")
+    ---------
+    -- Toggle the status bar gap -- Use this binding with avoidStruts from Hooks.ManageDocks.
+  , ((modm,                 xK_b),          sendMessage ToggleStruts)
+  , ((modm .|. shiftMask,   xK_b),          SM.submap . M.fromList $
+        [ ((0, xK_q), spawnHere "qutebrowser")
+        , ((0,         xK_c), spawnHere "chromium")
+        , ((0,         xK_f), spawnHere "firefox -P work")
+        , ((shiftMask, xK_f), spawnHere "firefox --ProfileManager --new-instance")
+        , ((0,         xK_o), spawnHere "opera")
+        , ((0,         xK_t), spawnHere "./local/tor-browser_en-US/start-tor-browser")])
+  , ((modm, xK_a), SM.submap . M.fromList $
+        [ ((0, xK_k), spawnHere "keepassx")
+        , ((0, xK_c), spawnHere "calibre")
+        , ((0, xK_t), spawnHere "(compton --config ~/.compton.conf&)")
+        , ((0, xK_p), spawnHere "pavucontrol")
+        , ((0, xK_w), spawnHere "wireshark")
+        ])
+    -- Push window back into tiling
+  , ((modm,               xK_t),       sinkAll)
+    --------- reset mouse pointer
+    --, ((modm , xK_z), updatePointer $ Relative 0.5 0.5) -- nope, never ever use this
+    -- Quit xmonad
+  -- , ((modm .|. shiftMask , xK_q), io (exitWith ExitSuccess))
+  , ((modm .|. shiftMask, xK_q),       spawn "qdbus org.kde.ksmserver /KSMServer logout -1 -1 -1")
     -- Restart xmonad
-    ,  ((modm               , xK_q       ),  spawn  "xmonad  --recompile; xmonad --restart")
-    --  group nav:
-    ,  ((modm               ,  xK_0      ),  nextMatch Forward  (className =? myTerminal))
-    ,  ((modm  .|. shiftMask ,  xK_0     ),  nextMatch Backward (className =? myTerminal))
-    ,  ((modm               ,  xK_v      ),  nextMatchOrDo Forward  (className =? "Gvim") (spawnHere "~/local/bin/gvim"))
-    ,  ((modm  .|. shiftMask ,  xK_v     ),  nextMatchOrDo Backward (className =? "Gvim") (spawnHere "~/local/bin/gvim"))
+  , ((modm,               xK_q),       spawn "xmonad --recompile; xmonad --restart")
+    -- group nav:
+  , ((modm,               xK_0),       nextMatch Forward (className =? myTerminal))
+  , ((modm .|. shiftMask, xK_0),       nextMatch Backward (className =? myTerminal))
+  , ((modm,               xK_v),       nextMatchOrDo Forward (className =? "Gvim") (spawnHere "~/local/bin/gvim"))
+  , ((modm .|. shiftMask, xK_v),       nextMatchOrDo Backward (className =? "Gvim") (spawnHere "~/local/bin/gvim"))
     -- launch stuff!
-    ,  ((modm               ,  xK_slash  ),  namedScratchpadAction scratchpads "notes")
-    --,  ((modm               ,  xK_v      ),  spawn "~/local/bin/gvim")
-    -- ,  ((modm .|. shiftMask ,  xK_g      ),  spawn "pidgin")
-    , ((modm              , xK_g), windowPromptGoto defaultXPConfig { searchPredicate = isInfixOf })
-    ,  ((modm               ,  xK_z      ),  spawn "xscreensaver-command --lock")
-    ,  ((modm .|. shiftMask ,  xK_i      ),  spawnHere "urxvt")
-    ,  ((modm .|. shiftMask ,  xK_period ),  spawnTS "clj")
-    ,  ((modm .|. shiftMask ,  xK_t      ),  spawnHere "transmission-qt")
+    --, ((modm,               xK_slash),   namedScratchpadAction scratchpads "notes")
+    --, ((modm , xK_v), spawn "~/local/bin/gvim")
+    -- , ((modm .|. shiftMask , xK_g), spawn "pidgin")
+  , ((modm,               xK_g),       windowPromptGoto defaultXPConfig { searchPredicate = isInfixOf })
+  , ((modm,               xK_z),       spawn "xscreensaver-command --lock")
+  , ((modm .|. shiftMask, xK_i),       spawnHere "urxvt")
+  , ((modm .|. shiftMask, xK_period),  spawnTS "clj")
+  , ((modm .|. shiftMask, xK_t),       spawnHere "transmission-qt")
     -- hotkeys:
-    --       -- XF86AudioMute
-    , ((0, 0x1008ff12), spawn "pactl set-sink-mute 0 toggle")
+    -- -- XF86AudioMute
+  , ((0,                  0x1008ff12), spawn "pactl set-sink-mute 0 toggle")
     -- "XF86AudioRaiseVolume"
-    , ((0, 0x1008ff13), spawn "pactl set-sink-volume 0 +10%")
+  , ((0,                  0x1008ff13), spawn "pactl set-sink-volume 0 +10%")
     -- XF86AudioLowerVolume
-    , ((0, 0x1008ff11), spawn "pactl set-sink-volume 0 -10%")
+  , ((0,                  0x1008ff11), spawn "pactl set-sink-volume 0 -10%")
     -- XF86AudioLowerVolume -- toggle mic
-    , ((0, 0x1008ffb2), spawn "pactl set-source-mute 1 toggle")
+  , ((0,                  0x1008ffb2), spawn "pactl set-source-mute 1 toggle")
     -- brightness
-    , ((0, 0x1008ff02), spawn "xbacklight -inc 10")
-    , ((0, 0x1008ff03), spawn "xbacklight -dec 10")
+  , ((0,                  0x1008ff02), spawn "xbacklight -inc 10")
+  , ((0,                  0x1008ff03), spawn "xbacklight -dec 10")
     -- should be kill wifi, suspend for me:
     --, ((0, 0x1008ff95), spawn "systemctl suspend")
     -- 0x1008ff81, should be XF86Tools, hybrid sleep:
-    , ((0, 0x1008ff81), spawn "systemctl hybrid-sleep")
+  , ((modm .|. shiftMask, xK_F10),     spawn "systemctl hibernate")
     -- XF86Search suspend:
-    , ((0, 0x1008ff1b), spawn "systemctl suspend")
+  , ((modm .|. shiftMask, xK_F11),     spawn "systemctl hybrid-sleep")
     -- 0x1008ff4a, XF86LaunchA
     -- 0x1008ff4a
-    , ((0, 0x1008ff4a), spawn "systemctl hibernate")
-    ]
-    ++
-    [((modm, k), goToTopic $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
-    ++
-    [((modm .|. shiftMask, k), windows $ W.shift $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
+  , ((modm .|. shiftMask, xK_F12),     spawn "systemctl suspend")
+  ]
+  ++
+  [((modm, k), goToTopic $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
+  ++
+  [((modm .|. shiftMask, k), windows $ W.shift $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
 
 modalmode conf@(XConfig {XMonad.modMask = modm}) = [ ((m `xor` modm, k), a >> (SM.submap . M.fromList $ modalmode conf))
                                                    | ((m, k), a) <- ks conf ]
