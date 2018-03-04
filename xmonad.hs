@@ -138,7 +138,7 @@ main = do
 
 myLayouts = id . noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts $ equalSpacing 30 0 0 5 $
 	    onWorkspaces ["6", "7", "8"] workLayouts $
-	    onWorkspaces ["3", "4"] browsersLayouts $
+	    onWorkspaces ["3", "4", "5"] browsersLayouts $
 	    --onWorkspace "9" imLayouts $
 	    --onWorkspace "9" imLayouts $
 	    -- onWorkspace "1" mediaLayouts $
@@ -183,7 +183,7 @@ myLayouts = id . noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts $
 myBorderWidth = 0
 
 myTerminal :: String
-myTerminal = "terminology"
+myTerminal = "st"
 -- myTerminal = "rxvtc"
 myBrowser  = "firefox"
 
@@ -200,8 +200,8 @@ myTopConf = defaultTopicConfig
   , topicActions = M.fromList $
     [ ("1", spawnTS "gentoo")
     --, ("2", spawn "gnome-control-center sound")
-    , ("3", spawnHere "firefox -P default" >> spawnHere "./local/tor-browser_en-US/start-tor-browser")
-    , ("4", spawnHere "firefox -P kikoolol" >> spawnHere "chromium")
+    , ("3", spawnHere "./local/tor-browser_en-US/start-tor-browser")
+    , ("4", spawnHere "firefox -P work")
     -- , ("6", spawnTS "clj")
     --, ("7", spawnTS "mix")
     , ("8", spawnTS "reader")
@@ -307,7 +307,8 @@ ks conf@(XConfig {XMonad.modMask = modm}) = [
 		    , ((0, xK_c),     spawnHere "chromium")
 		    , ((0, xK_f),     spawnHere "firefox")
 		    , ((shiftMask, xK_f),     spawnHere "firefox --ProfileManager --new-instance")
-		    , ((0, xK_o),     spawnHere "opera")])
+		    , ((0, xK_o),     spawnHere "opera")
+		    , ((0, xK_t),     spawnHere "./local/tor-browser_en-US/start-tor-browser")])
     , ((modm              , xK_a         ),  SM.submap . M.fromList $
 		    [ ((0, xK_k),     spawnHere "keepassx")
 		    , ((0, xK_c),     spawnHere "calibre")
