@@ -201,7 +201,7 @@ myTopConf = defaultTopicConfig
     [ ("1", spawnTS "gentoo")
     --, ("2", spawn "gnome-control-center sound")
     , ("3", spawnHere "./local/tor-browser_en-US/start-tor-browser")
-    , ("4", spawnHere "firefox -P work")
+    , ("4", spawnHere "firefox -P uman")
     -- , ("6", spawnTS "clj")
     --, ("7", spawnTS "mix")
     , ("8", spawnTS "reader")
@@ -305,7 +305,7 @@ ks conf@(XConfig {XMonad.modMask = modm}) = [
     , ((modm .|. shiftMask, xK_b         ),  SM.submap . M.fromList $
 		    [ ((0, xK_q),     spawnHere "qutebrowser")
 		    , ((0, xK_c),     spawnHere "chromium")
-		    , ((0, xK_f),     spawnHere "firefox")
+		    , ((0, xK_f),     spawnHere "firefox -P work")
 		    , ((shiftMask, xK_f),     spawnHere "firefox --ProfileManager --new-instance")
 		    , ((0, xK_o),     spawnHere "opera")
 		    , ((0, xK_t),     spawnHere "./local/tor-browser_en-US/start-tor-browser")])
