@@ -198,13 +198,13 @@ myTopConf = defaultTopicConfig
   , topicActions = M.fromList $
     [ ("1", spawnTS "gentoo")
     --, ("2", spawn "gnome-control-center sound")
-    , ("3", spawnHere "./local/tor-browser_en-US/start-tor-browser")
+    , ("3", spawnHere "./local/tor-browser_en-US/Browser/start-tor-browser")
     , ("4", spawnHere "firefox -P uman")
     -- , ("6", spawnTS "clj")
     --, ("7", spawnTS "mix")
-    , ("8", spawnTS "reader")
+    , ("8", spawnTS "umanlife")
     --, ("9", spawnHere "pidgin" >> spawnHere "ktp-contactlist" >> spawnHere "konversation")
-    , ("9", spawnTS "chat")
+    , ("9", spawnTS "chat" >> spawnHere "pidgin")
     ]
   }
 
@@ -325,7 +325,7 @@ ks conf@(XConfig {XMonad.modMask = modm}) = [
     --, ((modm,               xK_slash),   namedScratchpadAction scratchpads "notes")
     --, ((modm , xK_v), spawn "~/local/bin/gvim")
     -- , ((modm .|. shiftMask , xK_g), spawn "pidgin")
-  , ((modm,               xK_g),       windowPromptGoto defaultXPConfig { searchPredicate = isInfixOf })
+  -- , ((modm,               xK_g),       windowPromptGoto defaultXPConfig { searchPredicate = isInfixOf }) -- FIXME find something to do with G
   , ((modm,               xK_z),       spawn "xscreensaver-command --lock")
   , ((modm .|. shiftMask, xK_i),       spawnHere "urxvt")
   , ((modm .|. shiftMask, xK_period),  spawnTS "clj")
