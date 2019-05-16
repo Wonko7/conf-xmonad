@@ -60,22 +60,8 @@ import XMonad.Hooks.ManageHelpers
 -- import XMonad.Hooks.ScreenCorners
 
 -- layouts
-import XMonad.Layout.SimplestFloat
-import XMonad.Layout.NoBorders
-import XMonad.Layout.Accordion
---import XMonad.Layout.ResizableTile
-import XMonad.Layout.Reflect
-import XMonad.Layout.Tabbed
-import XMonad.Layout.PerWorkspace (onWorkspace)
 import XMonad.Layout.Grid
-import XMonad.Layout.Spacing
-import XMonad.Layout.MultiToggle
-import XMonad.Layout.MultiToggle.Instances
--- import XMonad.Layout.ToggleLayouts
-import XMonad.Layout.LayoutHints
-import XMonad.Layout.MagicFocus
 import XMonad.Layout.IM
-import XMonad.Layout.LayoutModifier
 import XMonad.Util.WindowProperties
 
 -- modified version of XMonad.Layout.IM --
