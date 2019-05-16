@@ -57,6 +57,7 @@ import XMonad.Hooks.ManageHelpers
 -- import XMonad.Hooks.ScreenCorners
 
 -- layouts
+import XMonad.Layout.SimplestFloat
 import XMonad.Layout.NoBorders
 import XMonad.Layout.Accordion
 --import XMonad.Layout.ResizableTile
@@ -78,106 +79,53 @@ import XMonad.Util.WindowProperties
 import XMonad.Layout.EqualSpacing
 
 main = xmonad $ ewmh desktopConfig
-		{ keys			= myKeys
-		, terminal		= myTerminal
-		, workspaces		= myTopics
-		, layoutHook		= myLayouts
-		, logHook		= myLogHook
-		-- , startupHook		= myStartupHook
-		-- , handleEventHook	= myEventHook
-		, focusFollowsMouse	= myFocusFollowsMouse
-		, borderWidth		= myBorderWidth
-		, manageHook		= composeAll
-		        [ --transience
-			 className =? "plasma" --> doFloat
-			 , className =? "Plasma" --> doFloat
-			 , className =? "plasma-desktop" --> doFloat
-			 , className =? "Plasma-desktop" --> doFloat
-			 , className =? "plasmashell" --> doCenterFloat
-			 , className =? "Plasmashell" --> doCenterFloat
-			, resource  =? "desktop_window" --> doFloat
-			, resource  =? "trayer"         --> doFloat
-			, isKDETrayWindow               --> doFloat
-			, resource  =? "kdesktop"       --> doFloat
-		--	, resource  =? "Dialog"         --> doFloat
-			, resource =? "stalonetray"	--> doFloat
-			  , className =? "ksplashsimple" --> doFloat  
-			  , className =? "ksplashqml" --> doFloat  
-			  , className =? "ksplashx" --> doFloat
-			, className =? "lxqt-panel" --> doIgnore
-			-- , className =? "lxqt-notificationd" --> doFullFloat
-			, className =? "lxqt-notificationd" --> doFloatDep (\(W.RationalRect x y w h) -> W.RationalRect 0 0 w h)
-			]
-			<+> composeAll
-			[ manageDocks
-			, className =? "lxqt-panel" --> doIgnore
-			-- , className =? "krunner" --> doIgnore
-			-- , resource =? "Conky" --> doIgnore
-			]
-		}
-
-
---myNoSpacing :: Int -> l a -> ModifiedLayout Spacing l a
---myNoSpacing = (spacing 0)
---
---data NOSPACING = NOSPACING deriving (Read, Show, Eq, Typeable)
---instance Transformer NOSPACING Window where
---	transform _ x k = k (myNoSpacing x) (\(myNoSpacing x') -> x')
-
---data BORDERS = BORDERS deriving (Read, Show, Eq, Typeable)
---instance Transformer BORDERS Window where
---	transform _ x k = k (Borders x) (\(Borders x') -> x')
-
-
---data NOSPACING = NOSPACING deriving (Read, Show, Eq, Typeable)
---instance Transformer NOSPACING Window where
---	transform _ x k = k (spacing 0 x) (\(spacing Int x') -> x')
---	$ avoidStruts $ tiled ||| (magicFocus $ Mirror tiled) ||| Mirror accor ||| XMonad.Layout.Grid.Grid
+  {   keys              = myKeys
+    , terminal          = myTerminal
+    , workspaces        = myTopics
+    , layoutHook        = myLayouts
+    , logHook           = myLogHook
+    , focusFollowsMouse = myFocusFollowsMouse
+    , borderWidth       = myBorderWidth
+    , manageHook        = composeAll
+    [ className =? "Tor Browser" --> doCenterFloat -- for security reasons! window size is fingerprintable!
+      , className =? "lxqt-panel" --> doIgnore
+      , isDialog --> unfloat
+    ]
+    <+> composeAll
+    [ manageDocks ]
+  }
+    where unfloat = ask >>= doF . W.sink
 
 myLayouts = id . noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts $ equalSpacing 30 0 0 5 $
-	    onWorkspaces ["6", "7", "8"] workLayouts $
-	    onWorkspaces ["3", "4", "5"] browsersLayouts $
-	    --onWorkspace "9" imLayouts $
-	    --onWorkspace "9" imLayouts $
-	    -- onWorkspace "1" mediaLayouts $
-	    defLayouts
+    onWorkspaces ["1"] mediaLayouts $
+    onWorkspaces ["3"] weAllFloatDownHere $
+    onWorkspaces ["6", "7", "8"] workLayouts $
+    onWorkspaces ["4", "5"] browsersLayouts $
+    onWorkspaces ["9"] imLayouts $
+    defLayouts
   where
-     workLayouts  = (magicFocus $ Mirror wtiled) ||| (magicFocus $ wtiled) ||| Mirror tiled ||| tiled
-     defLayouts   = tiled ||| (magicFocus $ Mirror wtiled) ||| (magicFocus $ wtiled) ||| Mirror tiled
+     workLayouts        = (magicFocus $ Mirror wtiled) ||| (magicFocus $ wtiled) ||| Mirror tiled ||| tiled
+     defLayouts         = tiled ||| (magicFocus $ Mirror wtiled) ||| (magicFocus $ wtiled) ||| Mirror tiled
 
-     --imLayouts    = imtiled ||| (magicFocus $ Mirror wtiled)
-     --imLayouts	  = reflectVertical $ withIMs (1%6) rosters Accordion
-     --imLayouts	  = withIM (1%6) telRoster Accordion
-     -- imLayouts	  = withIM (1%6) (Or telRoster pidginRoster) Accordion
-     --imLayouts	  = withIM (1%6) (Role "ktp-contactlist") Accordion
-     imLayouts	  = reflectHoriz $ withIMs (1/6) rosters $ Tall 0 delta ratio
-     rosters         = [pidginRoster, telRoster]
-     pidginRoster    = And (ClassName "Pidgin") (Role "buddy_list")
-     --skypeRoster     = (ClassName "Skype") `And` (Not (Title "Options")) `And` (Not (Role "Chats")) `And` (Not (Role "CallWindowForm"))
-     --telRoster	    = And (ClassName "ktp-contactlist") (Role "MainWindow")
-     --telRoster	    = And (ClassName "Ktp-contactlist") (Role "MainWindow")
-     telRoster	    = And (ClassName "Ktp-contactlist") (Role "MainWindow")
-     --telRoster	    = (Role "MainWindow")
-
-
-     browsersLayouts   = (Mirror accor) ||| (magicFocus $ wtiled) ||| accor ||| tiled ||| (magicFocus $ Mirror wtiled) ||| Mirror tiled
-     -- mediaLayouts = Mirror accor ||| tiled ||| (magicFocus $ Mirror wtiled)
+     imLayouts          = reflectHoriz $ withIMs (1/6) rosters $ Tall 0 delta ratio
+     rosters            = [pidginRoster]
+     pidginRoster       = And (ClassName "Pidgin") (Role "buddy_list")
+     telRoster          = And (ClassName "Ktp-contactlist") (Role "MainWindow")
+     weAllFloatDownHere = simplestFloat ||| Mirror accor
+     browsersLayouts    = (Mirror accor) ||| (magicFocus $ wtiled) ||| accor ||| tiled ||| (magicFocus $ Mirror wtiled) ||| Mirror tiled -- not that I ever use anything other than mirror accor...
+     mediaLayouts       = (magicFocus $ Mirror wtiled) ||| (magicFocus $ wtiled)
      -- default tiling algorithm partitions the screen into two panes
-     --
-     tiled    = layoutHints $ Tall nmaster delta ratio
-     wtiled   = layoutHints $ Tall nmaster delta (4/5)
-     imtiled  = layoutHints $ Tall 2 delta (4/5)
-     accor    = Accordion
+     tiled              = layoutHints $ Tall nmaster delta ratio
+     wtiled             = layoutHints $ Tall nmaster delta (4/5)
+     imtiled            = layoutHints $ Tall 2 delta (4/5)
+     accor              = Accordion
      -- The default number of windows in the master pane
-     nmaster = 1
+     nmaster            = 1
      -- Default proportion of screen occupied by master pane
-     ratio   = 2/3
+     ratio              = 2/3
      -- Percent of screen to increment by when resizing panes
-     delta   = 3/100
+     delta              = 3/100
 
-
-
--- hack; this is because layout defaults don't apply to NSP
 myBorderWidth = 0
 
 myTerminal :: String
@@ -192,20 +140,16 @@ myTopics = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 myTopConf :: TopicConfig
 myTopConf = defaultTopicConfig
-  { topicDirs = M.fromList [(show i, "~/") | i <- [1..9]]
-  , defaultTopic = "1"
-  , defaultTopicAction = const $ return ()
-  , topicActions = M.fromList $
-    [ ("1", spawnTS "gentoo")
-    --, ("2", spawn "gnome-control-center sound")
-    , ("3", spawnHere "./local/tor-browser_en-US/Browser/start-tor-browser")
-    , ("4", spawnHere "firefox -P uman")
-    -- , ("6", spawnTS "clj")
-    --, ("7", spawnTS "mix")
-    , ("8", spawnTS "umanlife")
-    --, ("9", spawnHere "pidgin" >> spawnHere "ktp-contactlist" >> spawnHere "konversation")
-    , ("9", spawnTS "chat" >> spawnHere "pidgin")
-    ]
+  {   topicDirs = M.fromList [(show i, "~/") | i <- [1..9]]
+    , defaultTopic = "1"
+    , defaultTopicAction = const $ return ()
+    , topicActions = M.fromList $
+      [   ("1", spawnTS "gentoo")
+        , ("3", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
+        , ("4", spawnHere "firefox -P uman")
+        , ("8", spawnTS "umanlife")
+        , ("9", spawnTS "chat" >> spawnHere "pidgin")
+      ]
   }
 
 addTopicHist = do winset <- gets windowset;
@@ -224,13 +168,11 @@ nextTS = do addTopicHist;
 	    nextWS;
 
 
-
-
 myLogHook :: X ()
 myLogHook = -- updatePointer (Relative 0.5 0.5)
             -- >> fadeInactiveLogHook 0.7
             historyHook
-	    >> (fadeOutLogHook $ fadeIf (isUnfocused <||> (className =? "Conky") <||> (className =? "lxqt-notificationd")) 0.5)
+            >> (fadeOutLogHook $ fadeIf (isUnfocused <||> (className =? "Conky") <||> (className =? "lxqt-notificationd")) 0.5)
             -- >> fadeInactiveLogHook 0.8
 
 
@@ -239,21 +181,22 @@ myFocusFollowsMouse = False
 
 ks conf@(XConfig {XMonad.modMask = modm}) = [
     -- terminal
-    ((modm, xK_Return), spawnTS "gentoo")
-  , ((modm .|. shiftMask,   xK_Return),     spawnHere myTerminal)
+    -- fixme: nothing on D! xk_d, B neither. b & d & g v & 0 & shift v & shift 0 & shift t, shift z, shift period for something fun.
+    ((modm, xK_Return),                     spawnHere myTerminal)
+  , ((modm .|. shiftMask,   xK_Return),     spawnHere $ myTerminal ++ " -e tmux")
     -- close focused window
   , ((modm .|. shiftMask,   xK_c),          kill)
     ---------
-    -- Rotate through the available layout algorithms
+      -- Rotate through the available layout algorithms
   , ((modm,                 xK_Tab),        sendMessage NextLayout)
     -- Reset the layouts on the current workspace to default
   , ((modm .|. shiftMask,   xK_Tab),        setLayout $ XMonad.layoutHook conf)
     ---------
-    -- Shrink/expand the master area
+      -- Shrink/expand the master area
   , ((modm,                 xK_u),          sendMessage Shrink)
   , ((modm,                 xK_i),          sendMessage Expand)
     ---------
-    -- send window to next WS
+      -- send window to next WS
   , ((modm .|. shiftMask,   xK_h),          shiftToPrev >> prevTS)
   , ((modm .|. shiftMask,   xK_l),          shiftToNext >> nextTS)
     -- next WS
@@ -261,7 +204,7 @@ ks conf@(XConfig {XMonad.modMask = modm}) = [
   , ((modm,                 xK_l),          nextTS)
     ---------
   , ((modm,                 xK_space),      toggleTopics)
-  , ((modm .|. shiftMask,   xK_space),      nextMatch History (return True))
+  , ((modm .|. shiftMask,   xK_space),      nextMatch History (return True)) -- FIXME useless
     --, ((modm , xK_BackSpace), cycleRecentWindows [xK_Alt_L] xK_j xK_k)
     --, ((modm , xK_BackSpace), goToSelected gridselectWindow)
     --, ((modm , xK_BackSpace), nextMatch History (return True))
@@ -280,7 +223,7 @@ ks conf@(XConfig {XMonad.modMask = modm}) = [
   , ((modm .|. controlMask, xK_h),          windowGo L False)
   , ((modm .|. controlMask, xK_l),          windowGo R False)
     ---------
-    -- Move focus to the master window
+      -- Move focus to the master window
   , ((modm,                 xK_m),          windows W.swapMaster)
     --, ((modm .|. shiftMask, xK_m), sendMessage (Toggle SMARTBORDERS)) -- ; todo:change: toggle max
   , ((modm,                 xK_f),          sendMessage (Toggle FULL)) -- ; todo:change: toggle max
@@ -290,72 +233,75 @@ ks conf@(XConfig {XMonad.modMask = modm}) = [
     -- pause and resume duns notifs
   , ((modm,                 xK_quoteright), spawn "killall -SIGUSR1 dunst")
   , ((modm .|. shiftMask,   xK_quoteright), spawn "killall -SIGUSR2 dunst")
-    ---------
     -- Toggle the status bar gap -- Use this binding with avoidStruts from Hooks.ManageDocks.
-  , ((modm,                 xK_b),          sendMessage ToggleStruts)
-  , ((modm .|. shiftMask,   xK_b),          SM.submap . M.fromList $
-        [ ((0, xK_q), spawnHere "qutebrowser")
-        , ((0,         xK_c), spawnHere "chromium")
-        , ((0,         xK_f), spawnHere "firefox -P work")
-        , ((shiftMask, xK_f), spawnHere "firefox --ProfileManager --new-instance")
-        , ((0,         xK_o), spawnHere "opera")
-        , ((0,         xK_t), spawnHere "./local/tor-browser_en-US/start-tor-browser")])
-  , ((modm, xK_a), SM.submap . M.fromList $
-        [ ((0, xK_k), spawnHere "keepassx")
-        , ((0, xK_c), spawnHere "calibre")
-        , ((0, xK_t), spawnHere "(compton --config ~/.compton.conf&)")
-        , ((0, xK_p), spawnHere "pavucontrol")
+  , ((modm .|. shiftMask,   xK_b),          sendMessage ToggleStruts)
+  --  , ((modm .|. shiftMask,   xK_b),          SM.submap . M.fromList $ FIXME UP FOR GRABS
+    , ((modm, xK_a), SM.submap . M.fromList $
+      [ ((0, xK_c), spawnHere "calibre")
+        , ((0, xK_p), spawnHere "pavucontrol-qt")
         , ((0, xK_w), spawnHere "wireshark")
-        ])
+        , ((0, xK_t), spawnHere "transmission-qt")
+        , ((0, xK_s), SM.submap . M.fromList $
+          [ ((0, xK_c), spawnTS "clj")
+            , ((0, xK_u), spawnTS "umanlife")
+            , ((0, xK_w), spawnTS "umanlife")
+            , ((0, xK_g), spawnTS "gentoo")
+          ])
+            , ((0, xK_b), SM.submap . M.fromList $
+              [ ((0, xK_q), spawnHere "qutebrowser")
+            , ((0,         xK_c), spawnHere "chromium")
+            , ((0,         xK_f), spawnHere "firefox -P uman")
+            , ((shiftMask, xK_f), spawnHere "firefox --ProfileManager --new-instance")
+            , ((0,         xK_o), spawnHere "opera")
+            , ((0,         xK_t), spawnHere "~/local/tor-browser_en-US/start-tor-browser")
+              ])
+      ])
     -- Push window back into tiling
-  , ((modm,               xK_t),       sinkAll)
+            , ((modm,               xK_t),       sinkAll)
     --------- reset mouse pointer
     --, ((modm , xK_z), updatePointer $ Relative 0.5 0.5) -- nope, never ever use this
     -- Quit xmonad
   -- , ((modm .|. shiftMask , xK_q), io (exitWith ExitSuccess))
-  , ((modm .|. shiftMask, xK_q),       spawn "qdbus org.kde.ksmserver /KSMServer logout -1 -1 -1")
+    , ((modm .|. shiftMask, xK_q),       spawn "qdbus org.kde.ksmserver /KSMServer logout -1 -1 -1") -- FIXME
     -- Restart xmonad
-  , ((modm,               xK_q),       spawn "xmonad --recompile; xmonad --restart")
-    -- group nav:
-  , ((modm,               xK_0),       nextMatch Forward (className =? myTerminal))
-  , ((modm .|. shiftMask, xK_0),       nextMatch Backward (className =? myTerminal))
-  , ((modm,               xK_v),       nextMatchOrDo Forward (className =? "Gvim") (spawnHere "~/local/bin/gvim"))
-  , ((modm .|. shiftMask, xK_v),       nextMatchOrDo Backward (className =? "Gvim") (spawnHere "~/local/bin/gvim"))
+    , ((modm,               xK_q),       spawn "xmonad --recompile; xmonad --restart")
+    -- group nav: useless shite.
+    , ((modm,               xK_0),       nextMatch Forward (className =? myTerminal))
+    , ((modm .|. shiftMask, xK_0),       nextMatch Backward (className =? myTerminal))
+    , ((modm,               xK_v),       nextMatchOrDo Forward (className =? "Gvim") (spawnHere "~/local/bin/gvim"))
+    , ((modm .|. shiftMask, xK_v),       nextMatchOrDo Backward (className =? "Gvim") (spawnHere "~/local/bin/gvim"))
     -- launch stuff!
-    --, ((modm,               xK_slash),   namedScratchpadAction scratchpads "notes")
-    --, ((modm , xK_v), spawn "~/local/bin/gvim")
-    -- , ((modm .|. shiftMask , xK_g), spawn "pidgin")
-  -- , ((modm,               xK_g),       windowPromptGoto defaultXPConfig { searchPredicate = isInfixOf }) -- FIXME find something to do with G
-  , ((modm,               xK_z),       spawn "xscreensaver-command --lock")
-  , ((modm .|. shiftMask, xK_i),       spawnHere "urxvt")
-  , ((modm .|. shiftMask, xK_period),  spawnTS "clj")
-  , ((modm .|. shiftMask, xK_t),       spawnHere "transmission-qt")
+    , ((modm,               xK_z),       spawn "xscreensaver-command --lock")
+    , ((modm .|. shiftMask, xK_i),       spawnHere "urxvt")
+  -- , ((modm .|. shiftMask, xK_period),  spawnTS "clj") -- not sure 
+  -- FIXME do something better with this!
+  --, ((modm .|. shiftMask, xK_t),       spawnHere "transmission-qt") -- FIXME up for grabs
     -- hotkeys:
     -- -- XF86AudioMute
-  , ((0,                  0x1008ff12), spawn "pactl set-sink-mute 0 toggle")
+    , ((0,                  0x1008ff12), spawn "pactl set-sink-mute 0 toggle; pactl set-sink-mute 1 toggle")
     -- "XF86AudioRaiseVolume"
-  , ((0,                  0x1008ff13), spawn "pactl set-sink-volume 0 +10%")
+    , ((0,                  0x1008ff13), spawn "pactl set-sink-volume 0 +10%; pactl set-sink-volume 1 +10%")
     -- XF86AudioLowerVolume
-  , ((0,                  0x1008ff11), spawn "pactl set-sink-volume 0 -10%")
+    , ((0,                  0x1008ff11), spawn "pactl set-sink-volume 0 -10%; pactl set-sink-volume 1 -10%")
     -- XF86AudioLowerVolume -- toggle mic
-  , ((0,                  0x1008ffb2), spawn "pactl set-source-mute 1 toggle")
+    , ((0,                  0x1008ffb2), spawn "pactl set-source-mute 0 toggle; pactl set-source-mute 1 toggle")
     -- brightness
-  , ((0,                  0x1008ff02), spawn "xbacklight -inc 10")
-  , ((0,                  0x1008ff03), spawn "xbacklight -dec 10")
+    , ((0,                  0x1008ff02), spawn "xbacklight -inc 10")
+    , ((0,                  0x1008ff03), spawn "xbacklight -dec 10")
     -- should be kill wifi, suspend for me:
     --, ((0, 0x1008ff95), spawn "systemctl suspend")
     -- 0x1008ff81, should be XF86Tools, hybrid sleep:
-  , ((modm .|. shiftMask, xK_F10),     spawn "systemctl hibernate")
+    , ((modm .|. shiftMask, xK_F10),     spawn "systemctl hibernate")
     -- XF86Search suspend:
-  , ((modm .|. shiftMask, xK_F11),     spawn "systemctl hybrid-sleep")
+    , ((modm .|. shiftMask, xK_F11),     spawn "systemctl hybrid-sleep")
     -- 0x1008ff4a, XF86LaunchA
     -- 0x1008ff4a
-  , ((modm .|. shiftMask, xK_F12),     spawn "systemctl suspend")
-  ]
+    , ((modm .|. shiftMask, xK_F12),     spawn "systemctl suspend")
+                                            ]
   ++
-  [((modm, k), goToTopic $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
+    [((modm, k), goToTopic $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
   ++
-  [((modm .|. shiftMask, k), windows $ W.shift $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
+    [((modm .|. shiftMask, k), windows $ W.shift $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
 
 modalmode conf@(XConfig {XMonad.modMask = modm}) = [ ((m `xor` modm, k), a >> (SM.submap . M.fromList $ modalmode conf))
                                                    | ((m, k), a) <- ks conf ]
@@ -396,9 +342,7 @@ hasAnyProperty [] _ = return False
 hasAnyProperty (p:ps) w = do
     b <- hasProperty p w
     if b then return True else hasAnyProperty ps w
- 
--- | Internal function for placing the rosters specified by
--- the properties and running original layout for all chat windows
+
 applyIMs :: (LayoutClass l Window) =>
                Rational
             -> [Property]
@@ -406,17 +350,18 @@ applyIMs :: (LayoutClass l Window) =>
             -> Rectangle
             -> X ([(Window, Rectangle)], Maybe (l Window))
 applyIMs ratio props wksp rect = do
-    let stack = W.stack wksp
-    let ws = W.integrate' $ stack
-    rosters <- filterM (hasAnyProperty props) ws
-    let n = fromIntegral $ length rosters
-    let m = round n
+    let stack                    = W.stack wksp
+    let ws                       = W.integrate' $ stack
+    rosters                      <- filterM (hasAnyProperty props) ws
+    let n                        = fromIntegral $ length rosters
+    let m                        = round n
     let (rostersRect, chatsRect) = splitHorizontallyBy (n * ratio) rect
-    let rosterRects = splitHorizontally m rostersRect
+    let rosterRects              = splitHorizontally m rostersRect
     --let rosterRects = splitHorizontally n rostersRect
-    let filteredStack = stack >>= W.filter (`notElem` rosters)
-    (a,b) <- runLayout (wksp {W.stack = filteredStack}) chatsRect
+    let filteredStack            = stack >>= W.filter (`notElem` rosters)
+    (a,b)                        <- runLayout (wksp {W.stack = filteredStack}) chatsRect
     return (zip rosters rosterRects ++ a, b)
+
 -- imLayout = avoidStruts $ reflectHoriz $ withIMs ratio rosters chatLayout where
 --     chatLayout      = Grid
 --     ratio           = 1%6
