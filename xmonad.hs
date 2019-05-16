@@ -90,23 +90,23 @@ main = xmonad $ ewmh desktopConfig
   }
     where unfloat = ask >>= doF . W.sink
 
-myLayouts = id . noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts $ equalSpacing 30 0 0 5 $
+myLayouts = noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts $ equalSpacing 30 0 0 5 $
     onWorkspaces ["1"] mediaLayouts $
     onWorkspaces ["3"] weAllFloatDownHere $
     onWorkspaces ["6", "7", "8"] workLayouts $
     onWorkspaces ["4", "5"] browsersLayouts $
-    onWorkspaces ["9"] imLayouts $
+    onWorkspaces ["9"] imLayouts
     defLayouts
   where
-     workLayouts        = (magicFocus $ Mirror wtiled) ||| (magicFocus $ wtiled) ||| Mirror tiled ||| tiled
-     defLayouts         = tiled ||| (magicFocus $ Mirror wtiled) ||| (magicFocus $ wtiled) ||| Mirror tiled
+     workLayouts        = magicFocus (Mirror wtiled) ||| magicFocus wtiled ||| Mirror tiled ||| tiled
+     defLayouts         = tiled ||| magicFocus (Mirror wtiled) ||| magicFocus wtiled ||| Mirror tiled
      imLayouts          = reflectHoriz $ withIMs (1/6) rosters $ Tall 0 delta ratio
      rosters            = [pidginRoster]
      pidginRoster       = And (ClassName "Pidgin") (Role "buddy_list")
      telRoster          = And (ClassName "Ktp-contactlist") (Role "MainWindow")
      weAllFloatDownHere = simplestFloat ||| Mirror accor
-     browsersLayouts    = (Mirror accor) ||| (magicFocus $ wtiled) ||| accor ||| tiled ||| (magicFocus $ Mirror wtiled) ||| Mirror tiled -- not that I ever use anything other than mirror accor...
-     mediaLayouts       = (magicFocus $ Mirror wtiled) ||| (magicFocus $ wtiled)
+     browsersLayouts    = Mirror accor ||| magicFocus wtiled ||| accor ||| tiled ||| magicFocus (Mirror wtiled) ||| Mirror tiled -- not that I ever use anything other than mirror accor...
+     mediaLayouts       = magicFocus (Mirror wtiled) ||| magicFocus wtiled
      -- default tiling algorithm partitions the screen into two panes
      tiled              = layoutHints $ Tall nmaster delta ratio
      wtiled             = layoutHints $ Tall nmaster delta (4/5)
@@ -135,7 +135,7 @@ myTopConf = defaultTopicConfig
   {   topicDirs = M.fromList [(show i, "~/") | i <- [1..9]]
     , defaultTopic = "1"
     , defaultTopicAction = const $ return ()
-    , topicActions = M.fromList $
+    , topicActions = M.fromList
       [   ("1", spawnTS "gentoo")
         , ("3", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
         , ("4", spawnHere "firefox -P uman")
