@@ -3,24 +3,13 @@
 module XMonad.MyStuff.AddRosters ( withIMs ) where
 
 import Control.Monad (liftM, filterM)
-
--- Import stuff
 import XMonad
-import XMonad.Core
-import XMonad.Layout.LayoutModifier
-import XMonad.Config.Desktop
 import qualified XMonad.StackSet as W
-import qualified Data.Map as M
-import XMonad.Util.EZConfig--(additionalKeys)
-import System.Exit
 import Graphics.X11.Xlib
-import System.IO
-import Data.Ratio ((%))
-
--- layouts
+import XMonad.Util.WindowProperties
+import XMonad.Layout.LayoutModifier
 import XMonad.Layout.Grid
 import XMonad.Layout.IM
-import XMonad.Util.WindowProperties
 
 -- modified version of XMonad.Layout.IM --
 --
