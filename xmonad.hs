@@ -106,7 +106,6 @@ myLayouts = id . noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts $
   where
      workLayouts        = (magicFocus $ Mirror wtiled) ||| (magicFocus $ wtiled) ||| Mirror tiled ||| tiled
      defLayouts         = tiled ||| (magicFocus $ Mirror wtiled) ||| (magicFocus $ wtiled) ||| Mirror tiled
-
      imLayouts          = reflectHoriz $ withIMs (1/6) rosters $ Tall 0 delta ratio
      rosters            = [pidginRoster]
      pidginRoster       = And (ClassName "Pidgin") (Role "buddy_list")
@@ -130,7 +129,6 @@ myBorderWidth = 0
 
 myTerminal :: String
 myTerminal = "st"
--- myTerminal = "rxvtc"
 myBrowser  = "firefox"
 
 spawnTS name = spawn $ "LOAD_TMUX_SESSION=" ++ name ++ " " ++ myTerminal
@@ -222,86 +220,85 @@ ks conf@(XConfig {XMonad.modMask = modm}) = [
   , ((modm .|. controlMask, xK_k),          windowGo U False)
   , ((modm .|. controlMask, xK_h),          windowGo L False)
   , ((modm .|. controlMask, xK_l),          windowGo R False)
-    ---------
-      -- Move focus to the master window
+  -- Move focus to the master window
   , ((modm,                 xK_m),          windows W.swapMaster)
-    --, ((modm .|. shiftMask, xK_m), sendMessage (Toggle SMARTBORDERS)) -- ; todo:change: toggle max
+  --, ((modm .|. shiftMask, xK_m), sendMessage (Toggle SMARTBORDERS)) -- ; todo:change: toggle max
   , ((modm,                 xK_f),          sendMessage (Toggle FULL)) -- ; todo:change: toggle max
-    -- Increment the number of windows in the master area
+  -- Increment the number of windows in the master area
   , ((modm,                 xK_comma),      sendMessage (IncMasterN 1))
   , ((modm,                 xK_period),     sendMessage (IncMasterN (-1)))
-    -- pause and resume duns notifs
+  -- pause and resume duns notifs
   , ((modm,                 xK_quoteright), spawn "killall -SIGUSR1 dunst")
   , ((modm .|. shiftMask,   xK_quoteright), spawn "killall -SIGUSR2 dunst")
-    -- Toggle the status bar gap -- Use this binding with avoidStruts from Hooks.ManageDocks.
+  -- Toggle the status bar gap -- Use this binding with avoidStruts from Hooks.ManageDocks.
   , ((modm .|. shiftMask,   xK_b),          sendMessage ToggleStruts)
   --  , ((modm .|. shiftMask,   xK_b),          SM.submap . M.fromList $ FIXME UP FOR GRABS
-    , ((modm, xK_a), SM.submap . M.fromList $
-      [ ((0, xK_c), spawnHere "calibre")
-        , ((0, xK_p), spawnHere "pavucontrol-qt")
-        , ((0, xK_w), spawnHere "wireshark")
-        , ((0, xK_t), spawnHere "transmission-qt")
-        , ((0, xK_s), SM.submap . M.fromList $
-          [ ((0, xK_c), spawnTS "clj")
-            , ((0, xK_u), spawnTS "umanlife")
-            , ((0, xK_w), spawnTS "umanlife")
-            , ((0, xK_g), spawnTS "gentoo")
-          ])
-            , ((0, xK_b), SM.submap . M.fromList $
-              [ ((0, xK_q), spawnHere "qutebrowser")
-            , ((0,         xK_c), spawnHere "chromium")
-            , ((0,         xK_f), spawnHere "firefox -P uman")
-            , ((shiftMask, xK_f), spawnHere "firefox --ProfileManager --new-instance")
-            , ((0,         xK_o), spawnHere "opera")
-            , ((0,         xK_t), spawnHere "~/local/tor-browser_en-US/start-tor-browser")
-              ])
-      ])
-    -- Push window back into tiling
-            , ((modm,               xK_t),       sinkAll)
-    --------- reset mouse pointer
-    --, ((modm , xK_z), updatePointer $ Relative 0.5 0.5) -- nope, never ever use this
-    -- Quit xmonad
+  , ((modm, xK_a), SM.submap . M.fromList $
+    [   ((0, xK_c), spawnHere "calibre")
+      , ((0, xK_p), spawnHere "pavucontrol-qt")
+      , ((0, xK_w), spawnHere "wireshark")
+      , ((0, xK_t), spawnHere "transmission-qt")
+      , ((0, xK_s), SM.submap . M.fromList $
+        [   ((0, xK_c), spawnTS "clj")
+          , ((0, xK_u), spawnTS "umanlife")
+          , ((0, xK_w), spawnTS "umanlife")
+          , ((0, xK_g), spawnTS "gentoo")
+        ])
+      , ((0, xK_b), SM.submap . M.fromList $
+        [   ((0, xK_q), spawnHere "qutebrowser")
+          , ((0,         xK_c), spawnHere "chromium")
+          , ((0,         xK_f), spawnHere "firefox -P uman")
+          , ((shiftMask, xK_f), spawnHere "firefox --ProfileManager --new-instance")
+          , ((0,         xK_o), spawnHere "opera")
+          , ((0,         xK_t), spawnHere "~/local/tor-browser_en-US/start-tor-browser")
+        ])
+    ])
+  -- Push window back into tiling
+  , ((modm,               xK_t),       sinkAll)
+  --------- reset mouse pointer
+  --, ((modm , xK_z), updatePointer $ Relative 0.5 0.5) -- nope, never ever use this
+  -- Quit xmonad
   -- , ((modm .|. shiftMask , xK_q), io (exitWith ExitSuccess))
-    , ((modm .|. shiftMask, xK_q),       spawn "qdbus org.kde.ksmserver /KSMServer logout -1 -1 -1") -- FIXME
-    -- Restart xmonad
-    , ((modm,               xK_q),       spawn "xmonad --recompile; xmonad --restart")
-    -- group nav: useless shite.
-    , ((modm,               xK_0),       nextMatch Forward (className =? myTerminal))
-    , ((modm .|. shiftMask, xK_0),       nextMatch Backward (className =? myTerminal))
-    , ((modm,               xK_v),       nextMatchOrDo Forward (className =? "Gvim") (spawnHere "~/local/bin/gvim"))
-    , ((modm .|. shiftMask, xK_v),       nextMatchOrDo Backward (className =? "Gvim") (spawnHere "~/local/bin/gvim"))
-    -- launch stuff!
-    , ((modm,               xK_z),       spawn "xscreensaver-command --lock")
-    , ((modm .|. shiftMask, xK_i),       spawnHere "urxvt")
+  , ((modm .|. shiftMask, xK_q),       spawn "qdbus org.kde.ksmserver /KSMServer logout -1 -1 -1")
+  -- Restart xmonad
+  , ((modm,               xK_q),       spawn "xmonad --recompile; xmonad --restart")
+  -- group nav: useless shite.
+  , ((modm,               xK_0),       nextMatch Forward (className =? myTerminal))
+  , ((modm .|. shiftMask, xK_0),       nextMatch Backward (className =? myTerminal))
+  , ((modm,               xK_v),       nextMatchOrDo Forward (className =? "Gvim") (spawnHere "~/local/bin/gvim"))
+  , ((modm .|. shiftMask, xK_v),       nextMatchOrDo Backward (className =? "Gvim") (spawnHere "~/local/bin/gvim"))
+  -- launch stuff!
+  , ((modm,               xK_z),       spawn "xscreensaver-command --lock")
+  , ((modm .|. shiftMask, xK_i),       spawnHere "urxvt")
   -- , ((modm .|. shiftMask, xK_period),  spawnTS "clj") -- not sure 
   -- FIXME do something better with this!
   --, ((modm .|. shiftMask, xK_t),       spawnHere "transmission-qt") -- FIXME up for grabs
-    -- hotkeys:
-    -- -- XF86AudioMute
-    , ((0,                  0x1008ff12), spawn "pactl set-sink-mute 0 toggle; pactl set-sink-mute 1 toggle")
-    -- "XF86AudioRaiseVolume"
-    , ((0,                  0x1008ff13), spawn "pactl set-sink-volume 0 +10%; pactl set-sink-volume 1 +10%")
-    -- XF86AudioLowerVolume
-    , ((0,                  0x1008ff11), spawn "pactl set-sink-volume 0 -10%; pactl set-sink-volume 1 -10%")
-    -- XF86AudioLowerVolume -- toggle mic
-    , ((0,                  0x1008ffb2), spawn "pactl set-source-mute 0 toggle; pactl set-source-mute 1 toggle")
-    -- brightness
-    , ((0,                  0x1008ff02), spawn "xbacklight -inc 10")
-    , ((0,                  0x1008ff03), spawn "xbacklight -dec 10")
-    -- should be kill wifi, suspend for me:
-    --, ((0, 0x1008ff95), spawn "systemctl suspend")
-    -- 0x1008ff81, should be XF86Tools, hybrid sleep:
-    , ((modm .|. shiftMask, xK_F10),     spawn "systemctl hibernate")
-    -- XF86Search suspend:
-    , ((modm .|. shiftMask, xK_F11),     spawn "systemctl hybrid-sleep")
-    -- 0x1008ff4a, XF86LaunchA
-    -- 0x1008ff4a
-    , ((modm .|. shiftMask, xK_F12),     spawn "systemctl suspend")
-                                            ]
+  -- hotkeys:
+  -- -- XF86AudioMute
+  , ((0,                  0x1008ff12), spawn "pactl set-sink-mute 0 toggle; pactl set-sink-mute 1 toggle")
+  -- "XF86AudioRaiseVolume"
+  , ((0,                  0x1008ff13), spawn "pactl set-sink-volume 0 +10%; pactl set-sink-volume 1 +10%")
+  -- XF86AudioLowerVolume
+  , ((0,                  0x1008ff11), spawn "pactl set-sink-volume 0 -10%; pactl set-sink-volume 1 -10%")
+  -- XF86AudioLowerVolume -- toggle mic
+  , ((0,                  0x1008ffb2), spawn "pactl set-source-mute 0 toggle; pactl set-source-mute 1 toggle")
+  -- brightness
+  , ((0,                  0x1008ff02), spawn "xbacklight -inc 10")
+  , ((0,                  0x1008ff03), spawn "xbacklight -dec 10")
+  -- should be kill wifi, suspend for me:
+  --, ((0, 0x1008ff95), spawn "systemctl suspend")
+  -- 0x1008ff81, should be XF86Tools, hybrid sleep:
+  , ((modm .|. shiftMask, xK_F10),     spawn "systemctl hibernate")
+  -- XF86Search suspend:
+  , ((modm .|. shiftMask, xK_F11),     spawn "systemctl hybrid-sleep")
+  -- 0x1008ff4a, XF86LaunchA
+  -- 0x1008ff4a
+  , ((modm .|. shiftMask, xK_F12),     spawn "systemctl suspend")
+  ]
   ++
-    [((modm, k), goToTopic $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
+  [((modm, k), goToTopic $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
   ++
-    [((modm .|. shiftMask, k), windows $ W.shift $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
+  [((modm .|. shiftMask, k), windows $ W.shift $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
 
 modalmode conf@(XConfig {XMonad.modMask = modm}) = [ ((m `xor` modm, k), a >> (SM.submap . M.fromList $ modalmode conf))
                                                    | ((m, k), a) <- ks conf ]
@@ -309,19 +306,13 @@ modalmode conf@(XConfig {XMonad.modMask = modm}) = [ ((m `xor` modm, k), a >> (S
 myKeys :: XConfig Layout -> M.Map (KeyMask, KeySym) (X ())
 myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $ ((modm, xK_n), SM.submap . M.fromList $ modalmode conf) : ks conf
 
--- TODO
---	urgency hook --> irssi
-
-
-
-
-
 -- modified version of XMonad.Layout.IM --
 --
 -- see: https://wiki.haskell.org/Xmonad/Config_archive/Thomas_ten_Cate's_xmonad.hs
 --
 -- | Data type for LayoutModifier which converts given layout to IM-layout
 -- (with dedicated space for the roster and original layout for chat windows)
+
 data AddRosters a = AddRosters Rational [Property] deriving (Read, Show)
  
 instance LayoutModifier AddRosters Window where
@@ -361,26 +352,3 @@ applyIMs ratio props wksp rect = do
     let filteredStack            = stack >>= W.filter (`notElem` rosters)
     (a,b)                        <- runLayout (wksp {W.stack = filteredStack}) chatsRect
     return (zip rosters rosterRects ++ a, b)
-
--- imLayout = avoidStruts $ reflectHoriz $ withIMs ratio rosters chatLayout where
---     chatLayout      = Grid
---     ratio           = 1%6
---     rosters         = [skypeRoster, pidginRoster, telRoster]
---     pidginRoster    = And (ClassName "Pidgin") (Role "buddy_list")
---     skypeRoster     = (ClassName "Skype") `And` (Not (Title "Options")) `And` (Not (Role "Chats")) `And` (Not (Role "CallWindowForm"))
---     telRoster	    = And (Role "ktp-contactlist") (ClassName "MainWindow")
---  
--- myLayoutHook = fullscreen $ im $ normal where
---     normal     = tallLayout ||| wideLayout ||| singleLayout
---     fullscreen = onWorkspace "fullscreen" fullscreenLayout
---     im         = onWorkspace "im" imLayout
---  
--- -- special treatment for specific windows:
--- -- put the Pidgin and Skype windows in the im workspace
--- myManageHook = imManageHooks <+> manageHook myBaseConfig
--- imManageHooks = composeAll [isIM --> moveToIM] where
---     isIM     = foldr1 (<||>) [isPidgin, isSkype]
---     isPidgin = className =? "Pidgin"
---     isSkype  = className =? "Skype"
---     moveToIM = doF $ W.shift "im"
-
