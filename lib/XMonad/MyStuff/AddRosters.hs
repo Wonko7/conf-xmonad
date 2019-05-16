@@ -2,8 +2,6 @@
 
 module XMonad.MyStuff.AddRosters ( withIMs ) where
 
-import Data.Bits
-import Data.List
 import Control.Monad (liftM, filterM)
 
 -- Import stuff
@@ -18,46 +16,6 @@ import System.Exit
 import Graphics.X11.Xlib
 import System.IO
 import Data.Ratio ((%))
-
-import XMonad.Hooks.EwmhDesktops
-import XMonad.Hooks.ManageDocks
-import XMonad.Actions.DynamicWorkspaces
-import XMonad.Hooks.FadeInactive
-
--- actions
-import XMonad.Actions.CycleWS
-import XMonad.Actions.CycleWindows
-import XMonad.Actions.WindowGo
-import XMonad.Actions.Navigation2D
-import qualified XMonad.Actions.Search as S
-import XMonad.Actions.Search
-import qualified XMonad.Actions.Submap as SM
-import XMonad.Actions.GridSelect
-import XMonad.Actions.SpawnOn
-import XMonad.Core as XMonad hiding
-	(focusFollowsMouse)
-import XMonad.Actions.UpdatePointer
-import XMonad.Actions.TopicSpace
-import XMonad.Actions.WithAll
-import XMonad.Actions.GroupNavigation
-import XMonad.Layout.PerWorkspace
-import XMonad.Prompt.Window
-import XMonad.Actions.RotSlaves
-
--- utils
--- -- (scratchpadSpawnAction, scratchpadManageHook, scratchpadFilterOutWorkspace)
-import XMonad.Util.NamedScratchpad
-import XMonad.Util.Run(spawnPipe)
-import qualified XMonad.Prompt as P
-import XMonad.Prompt.Shell
-import XMonad.Prompt
-
--- hooks
-import XMonad.Hooks.DynamicLog
-import XMonad.Hooks.ManageDocks
-import XMonad.Hooks.UrgencyHook
-import XMonad.Hooks.ManageHelpers
--- import XMonad.Hooks.ScreenCorners
 
 -- layouts
 import XMonad.Layout.Grid
