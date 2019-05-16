@@ -62,7 +62,6 @@ import XMonad.Layout.NoBorders
 import XMonad.Layout.Accordion
 --import XMonad.Layout.ResizableTile
 import XMonad.Layout.Reflect
---import XMonad.Layout.IM
 import XMonad.Layout.Tabbed
 import XMonad.Layout.MultiToggle
 import XMonad.Layout.PerWorkspace (onWorkspace)
@@ -220,19 +219,19 @@ ks conf@(XConfig {XMonad.modMask = modm}) = [
   , ((modm .|. controlMask, xK_k),          windowGo U False)
   , ((modm .|. controlMask, xK_h),          windowGo L False)
   , ((modm .|. controlMask, xK_l),          windowGo R False)
-  -- Move focus to the master window
+    -- Move focus to the master window
   , ((modm,                 xK_m),          windows W.swapMaster)
-  --, ((modm .|. shiftMask, xK_m), sendMessage (Toggle SMARTBORDERS)) -- ; todo:change: toggle max
+    -- ((modm .|. shiftMask, xK_m), sendMessage (Toggle SMARTBORDERS))
   , ((modm,                 xK_f),          sendMessage (Toggle FULL)) -- ; todo:change: toggle max
-  -- Increment the number of windows in the master area
+    -- Increment the number of windows in the master area
   , ((modm,                 xK_comma),      sendMessage (IncMasterN 1))
   , ((modm,                 xK_period),     sendMessage (IncMasterN (-1)))
-  -- pause and resume duns notifs
+    -- pause and resume duns notifs
   , ((modm,                 xK_quoteright), spawn "killall -SIGUSR1 dunst")
   , ((modm .|. shiftMask,   xK_quoteright), spawn "killall -SIGUSR2 dunst")
-  -- Toggle the status bar gap -- Use this binding with avoidStruts from Hooks.ManageDocks.
+    -- Toggle the status bar gap -- Use this binding with avoidStruts from Hooks.ManageDocks.
   , ((modm .|. shiftMask,   xK_b),          sendMessage ToggleStruts)
-  --  , ((modm .|. shiftMask,   xK_b),          SM.submap . M.fromList $ FIXME UP FOR GRABS
+    --  , ((modm .|. shiftMask,   xK_b),          SM.submap . M.fromList $ FIXME UP FOR GRABS
   , ((modm, xK_a), SM.submap . M.fromList $
     [   ((0, xK_c), spawnHere "calibre")
       , ((0, xK_p), spawnHere "pavucontrol-qt")
@@ -253,48 +252,48 @@ ks conf@(XConfig {XMonad.modMask = modm}) = [
           , ((0,         xK_t), spawnHere "~/local/tor-browser_en-US/start-tor-browser")
         ])
     ])
-  -- Push window back into tiling
+    -- Push window back into tiling
   , ((modm,               xK_t),       sinkAll)
-  --------- reset mouse pointer
-  --, ((modm , xK_z), updatePointer $ Relative 0.5 0.5) -- nope, never ever use this
-  -- Quit xmonad
-  -- , ((modm .|. shiftMask , xK_q), io (exitWith ExitSuccess))
+    --------- reset mouse pointer
+    --, ((modm , xK_z), updatePointer $ Relative 0.5 0.5) -- nope, never ever use this
+    -- Quit xmonad
+    -- , ((modm .|. shiftMask , xK_q), io (exitWith ExitSuccess))
   , ((modm .|. shiftMask, xK_q),       spawn "qdbus org.kde.ksmserver /KSMServer logout -1 -1 -1")
-  -- Restart xmonad
+    -- Restart xmonad
   , ((modm,               xK_q),       spawn "xmonad --recompile; xmonad --restart")
-  -- group nav: useless shite.
+    -- group nav: useless shite.
   , ((modm,               xK_0),       nextMatch Forward (className =? myTerminal))
   , ((modm .|. shiftMask, xK_0),       nextMatch Backward (className =? myTerminal))
   , ((modm,               xK_v),       nextMatchOrDo Forward (className =? "Gvim") (spawnHere "~/local/bin/gvim"))
   , ((modm .|. shiftMask, xK_v),       nextMatchOrDo Backward (className =? "Gvim") (spawnHere "~/local/bin/gvim"))
-  -- launch stuff!
+    -- launch stuff!
   , ((modm,               xK_z),       spawn "xscreensaver-command --lock")
   , ((modm .|. shiftMask, xK_i),       spawnHere "urxvt")
-  -- , ((modm .|. shiftMask, xK_period),  spawnTS "clj") -- not sure 
-  -- FIXME do something better with this!
-  --, ((modm .|. shiftMask, xK_t),       spawnHere "transmission-qt") -- FIXME up for grabs
-  -- hotkeys:
-  -- -- XF86AudioMute
+    -- , ((modm .|. shiftMask, xK_period),  spawnTS "clj") -- not sure 
+    -- FIXME do something better with this!
+    --, ((modm .|. shiftMask, xK_t),       spawnHere "transmission-qt") -- FIXME up for grabs
+    -- hotkeys:
+    -- -- XF86AudioMute
   , ((0,                  0x1008ff12), spawn "pactl set-sink-mute 0 toggle; pactl set-sink-mute 1 toggle")
-  -- "XF86AudioRaiseVolume"
+    -- "XF86AudioRaiseVolume"
   , ((0,                  0x1008ff13), spawn "pactl set-sink-volume 0 +10%; pactl set-sink-volume 1 +10%")
-  -- XF86AudioLowerVolume
+    -- XF86AudioLowerVolume
   , ((0,                  0x1008ff11), spawn "pactl set-sink-volume 0 -10%; pactl set-sink-volume 1 -10%")
-  -- XF86AudioLowerVolume -- toggle mic
+    -- XF86AudioLowerVolume -- toggle mic
   , ((0,                  0x1008ffb2), spawn "pactl set-source-mute 0 toggle; pactl set-source-mute 1 toggle")
-  -- brightness
+    -- brightness
   , ((0,                  0x1008ff02), spawn "xbacklight -inc 10")
   , ((0,                  0x1008ff03), spawn "xbacklight -dec 10")
-  -- should be kill wifi, suspend for me:
-  --, ((0, 0x1008ff95), spawn "systemctl suspend")
-  -- 0x1008ff81, should be XF86Tools, hybrid sleep:
+    -- should be kill wifi, suspend for me:
+    --, ((0, 0x1008ff95), spawn "systemctl suspend")
+    -- 0x1008ff81, should be XF86Tools, hybrid sleep:
   , ((modm .|. shiftMask, xK_F10),     spawn "systemctl hibernate")
-  -- XF86Search suspend:
+    -- XF86Search suspend:
   , ((modm .|. shiftMask, xK_F11),     spawn "systemctl hybrid-sleep")
-  -- 0x1008ff4a, XF86LaunchA
-  -- 0x1008ff4a
+    -- 0x1008ff4a, XF86LaunchA
+    -- 0x1008ff4a
   , ((modm .|. shiftMask, xK_F12),     spawn "systemctl suspend")
-  ]
+                                            ]
   ++
   [((modm, k), goToTopic $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
   ++
