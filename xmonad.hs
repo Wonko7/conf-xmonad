@@ -6,7 +6,6 @@ import Control.Monad (liftM, filterM)
 
 -- Import stuff
 import XMonad
--- import XMonad.Config.Kde
 import XMonad.Config.Desktop
 import qualified XMonad.StackSet as W
 import qualified Data.Map as M
@@ -16,8 +15,6 @@ import Graphics.X11.Xlib
 import System.IO
 import Data.Ratio ((%))
 
-import XMonad.Hooks.EwmhDesktops
-import XMonad.Hooks.ManageDocks
 import XMonad.Actions.DynamicWorkspaces
 import XMonad.Hooks.FadeInactive
 
@@ -37,44 +34,41 @@ import XMonad.Actions.UpdatePointer
 import XMonad.Actions.TopicSpace
 import XMonad.Actions.WithAll
 import XMonad.Actions.GroupNavigation
-import XMonad.Layout.PerWorkspace
-import XMonad.Prompt.Window
 import XMonad.Actions.RotSlaves
 
 -- utils
--- -- (scratchpadSpawnAction, scratchpadManageHook, scratchpadFilterOutWorkspace)
 import XMonad.Util.NamedScratchpad
 import XMonad.Util.Run(spawnPipe)
 import qualified XMonad.Prompt as P
-import XMonad.Prompt.Shell
 import XMonad.Prompt
+import XMonad.Prompt.Shell
+import XMonad.Prompt.Window
 
 -- hooks
+import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.UrgencyHook
 import XMonad.Hooks.ManageHelpers
--- import XMonad.Hooks.ScreenCorners
 
 -- layouts
 import XMonad.Layout.SimplestFloat
 import XMonad.Layout.NoBorders
 import XMonad.Layout.Accordion
---import XMonad.Layout.ResizableTile
 import XMonad.Layout.Reflect
 import XMonad.Layout.Tabbed
-import XMonad.Layout.MultiToggle
-import XMonad.Layout.PerWorkspace (onWorkspace)
+import XMonad.Layout.PerWorkspace
 import XMonad.Layout.Grid
 import XMonad.Layout.Spacing
 import XMonad.Layout.MultiToggle
 import XMonad.Layout.MultiToggle.Instances
--- import XMonad.Layout.ToggleLayouts
 import XMonad.Layout.LayoutHints
 import XMonad.Layout.MagicFocus
 import XMonad.Layout.IM
 import XMonad.Layout.LayoutModifier
 import XMonad.Util.WindowProperties
+
+-- local stuff:
 import XMonad.Layout.EqualSpacing
 import XMonad.MyStuff.AddRosters
 
@@ -167,17 +161,13 @@ nextTS = do addTopicHist;
 
 
 myLogHook :: X ()
-myLogHook = -- updatePointer (Relative 0.5 0.5)
-            -- >> fadeInactiveLogHook 0.7
-            historyHook
-            >> (fadeOutLogHook $ fadeIf (isUnfocused <||> (className =? "Conky") <||> (className =? "lxqt-notificationd")) 0.5)
-            -- >> fadeInactiveLogHook 0.8
+myLogHook = historyHook >> fadeOutLogHook (fadeIf (isUnfocused <||> (className =? "Conky") <||> (className =? "lxqt-notificationd")) 0.5)
 
 
 myFocusFollowsMouse :: Bool
 myFocusFollowsMouse = False
 
-ks conf@(XConfig {XMonad.modMask = modm}) = [
+ks conf@XConfig {XMonad.modMask = modm} = [
     -- terminal
     -- fixme: nothing on D! xk_d, B neither. b & d & g v & 0 & shift v & shift 0 & shift t, shift z, shift period for something fun.
     ((modm, xK_Return),                     spawnHere myTerminal)
@@ -300,8 +290,7 @@ ks conf@(XConfig {XMonad.modMask = modm}) = [
   ++
   [((modm .|. shiftMask, k), windows $ W.shift $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
 
-modalmode conf@(XConfig {XMonad.modMask = modm}) = [ ((m `xor` modm, k), a >> (SM.submap . M.fromList $ modalmode conf))
-                                                   | ((m, k), a) <- ks conf ]
+modalmode conf@XConfig {XMonad.modMask = modm} = [ ((m `xor` modm, k), a >> (SM.submap . M.fromList $ modalmode conf)) | ((m, k), a) <- ks conf ]
 
 myKeys :: XConfig Layout -> M.Map (KeyMask, KeySym) (X ())
-myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $ ((modm, xK_n), SM.submap . M.fromList $ modalmode conf) : ks conf
+myKeys conf@XConfig {XMonad.modMask = modm} = M.fromList $ ((modm, xK_n), SM.submap . M.fromList $ modalmode conf) : ks conf
