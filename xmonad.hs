@@ -29,7 +29,7 @@ import qualified XMonad.Actions.Submap as SM
 import XMonad.Actions.GridSelect
 import XMonad.Actions.SpawnOn
 import XMonad.Core as XMonad hiding
-	(focusFollowsMouse)
+        (focusFollowsMouse)
 import XMonad.Actions.UpdatePointer
 import XMonad.Actions.TopicSpace
 import XMonad.Actions.WithAll
@@ -66,6 +66,7 @@ import XMonad.Layout.LayoutHints
 import XMonad.Layout.MagicFocus
 import XMonad.Layout.IM
 import XMonad.Layout.LayoutModifier
+import XMonad.Layout.ZoomRow
 import XMonad.Util.WindowProperties
 
 -- local stuff:
@@ -92,6 +93,7 @@ main = xmonad $ ewmh desktopConfig
 
 myLayouts = noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts $ equalSpacing 30 0 0 5 $
     onWorkspaces ["1"] mediaLayouts $
+    onWorkspaces ["2"] imTooSquare $
     onWorkspaces ["3"] weAllFloatDownHere $
     onWorkspaces ["6", "7", "8"] workLayouts $
     onWorkspaces ["4", "5"] browsersLayouts $
@@ -104,14 +106,14 @@ myLayouts = noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts $ equa
      rosters            = [pidginRoster]
      pidginRoster       = And (ClassName "Pidgin") (Role "buddy_list")
      telRoster          = And (ClassName "Ktp-contactlist") (Role "MainWindow")
-     weAllFloatDownHere = simplestFloat ||| Mirror accor
-     browsersLayouts    = Mirror accor ||| magicFocus wtiled ||| accor ||| tiled ||| magicFocus (Mirror wtiled) ||| Mirror tiled -- not that I ever use anything other than mirror accor...
+     weAllFloatDownHere = simplestFloat ||| Accordion
+     imTooSquare        = Grid ||| Mirror zoomRow
+     browsersLayouts    = Mirror Accordion ||| magicFocus wtiled ||| Accordion ||| tiled ||| magicFocus (Mirror wtiled) ||| Mirror tiled -- not that I ever use anything other than mirror accor...
      mediaLayouts       = magicFocus (Mirror wtiled) ||| magicFocus wtiled
      -- default tiling algorithm partitions the screen into two panes
      tiled              = layoutHints $ Tall nmaster delta ratio
      wtiled             = layoutHints $ Tall nmaster delta (4/5)
      imtiled            = layoutHints $ Tall 2 delta (4/5)
-     accor              = Accordion
      -- The default number of windows in the master pane
      nmaster            = 1
      -- Default proportion of screen occupied by master pane
@@ -125,22 +127,29 @@ myTerminal :: String
 myTerminal = "st"
 myBrowser  = "firefox"
 
-spawnTS name = spawn $ "LOAD_TMUX_SESSION=" ++ name ++ " " ++ myTerminal
+spawnTmuxSession name               = spawn $ "LOAD_TMUX_SESSION=" ++ name ++ " " ++ myTerminal
+spawnRemoteTmuxSession host session = spawn $ myTerminal ++ " -e ssh -t " ++ host ++ " LOAD_TMUX_SESSION=" ++ session ++ " zsh"
+spawnCmd cmd                        = spawn $ myTerminal ++ " -e " ++ cmd
 
 myTopics :: [Topic]
 myTopics = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 myTopConf :: TopicConfig
-myTopConf = defaultTopicConfig
+myTopConf = def
   {   topicDirs = M.fromList [(show i, "~/") | i <- [1..9]]
     , defaultTopic = "1"
     , defaultTopicAction = const $ return ()
     , topicActions = M.fromList
-      [   ("1", spawnTS "gentoo")
+      [   ("1", spawnTmuxSession "gentoo")
+        , ("2",    spawnRemoteTmuxSession "wg.nostromo.local" "gentoo"
+                >> spawnRemoteTmuxSession "undefined.re"   "gentoo"
+                >> spawnRemoteTmuxSession "wg.serenity.local" "gentoo"
+          )
+  -- [((modm .|. shiftMask, k), windows $ W.shift $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
         , ("3", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
         , ("4", spawnHere "firefox -P uman")
-        , ("8", spawnTS "umanlife")
-        , ("9", spawnTS "chat" >> spawnHere "pidgin")
+        , ("8", spawnTmuxSession "umanlife")
+        , ("9", spawnTmuxSession "chat" >> spawnHere "pidgin")
       ]
   }
 
@@ -154,10 +163,10 @@ goToTopic i = do addTopicHist;
                  switchTopic myTopConf i;
 
 prevTS = do addTopicHist;
-	    prevWS;
+            prevWS;
 
 nextTS = do addTopicHist;
-	    nextWS;
+            nextWS;
 
 
 myLogHook :: X ()
@@ -223,16 +232,16 @@ ks conf@XConfig {XMonad.modMask = modm} = [
     -- Toggle the status bar gap -- Use this binding with avoidStruts from Hooks.ManageDocks.
   , ((modm .|. shiftMask,   xK_b),          sendMessage ToggleStruts)
     --  , ((modm .|. shiftMask,   xK_b),          SM.submap . M.fromList $ FIXME UP FOR GRABS
-  , ((modm, xK_a), SM.submap . M.fromList $
+  , ((modm, xK_a),                          SM.submap . M.fromList $
     [   ((0, xK_c), spawnHere "calibre")
       , ((0, xK_p), spawnHere "pavucontrol-qt")
       , ((0, xK_w), spawnHere "wireshark")
       , ((0, xK_t), spawnHere "transmission-qt")
       , ((0, xK_s), SM.submap . M.fromList $
-        [   ((0, xK_c), spawnTS "clj")
-          , ((0, xK_u), spawnTS "umanlife")
-          , ((0, xK_w), spawnTS "umanlife")
-          , ((0, xK_g), spawnTS "gentoo")
+        [   ((0, xK_c), spawnTmuxSession "clj")
+          , ((0, xK_u), spawnTmuxSession "umanlife")
+          , ((0, xK_w), spawnTmuxSession "umanlife")
+          , ((0, xK_g), spawnTmuxSession "gentoo")
         ])
       , ((0, xK_b), SM.submap . M.fromList $
         [   ((0, xK_q), spawnHere "qutebrowser")
@@ -249,7 +258,7 @@ ks conf@XConfig {XMonad.modMask = modm} = [
     --, ((modm , xK_z), updatePointer $ Relative 0.5 0.5) -- nope, never ever use this
     -- Quit xmonad
     -- , ((modm .|. shiftMask , xK_q), io (exitWith ExitSuccess))
-  , ((modm .|. shiftMask, xK_q),       spawn "qdbus org.kde.ksmserver /KSMServer logout -1 -1 -1")
+  --, ((modm .|. shiftMask, xK_q),       spawn "qdbus org.kde.ksmserver /KSMServer logout -1 -1 -1")
     -- Restart xmonad
   , ((modm,               xK_q),       spawn "xmonad --recompile; xmonad --restart")
     -- group nav: useless shite.
@@ -258,9 +267,15 @@ ks conf@XConfig {XMonad.modMask = modm} = [
   , ((modm,               xK_v),       nextMatchOrDo Forward (className =? "Gvim") (spawnHere "~/local/bin/gvim"))
   , ((modm .|. shiftMask, xK_v),       nextMatchOrDo Backward (className =? "Gvim") (spawnHere "~/local/bin/gvim"))
     -- launch stuff!
-  , ((modm,               xK_z),       spawn "xscreensaver-command --lock")
+  --, ((modm,               xK_z),       spawn "xscreensaver-command --lock")
   , ((modm .|. shiftMask, xK_i),       spawnHere "urxvt")
-    -- , ((modm .|. shiftMask, xK_period),  spawnTS "clj") -- not sure 
+  --, ((modm,               xK_z),       spawn "xscreensaver-command --lock")
+  , ((modm, xK_z),                          SM.submap . M.fromList $
+    [   ((modm, xK_i), sendMessage zoomIn)
+      , ((modm, xK_o), sendMessage zoomOut)
+      , ((modm, xK_z), spawn "xscreensaver-command --lock")
+    ])
+    -- , ((modm .|. shiftMask, xK_period),  spawnTmuxSession "clj") -- not sure
     -- FIXME do something better with this!
     --, ((modm .|. shiftMask, xK_t),       spawnHere "transmission-qt") -- FIXME up for grabs
     -- hotkeys:
@@ -284,7 +299,7 @@ ks conf@XConfig {XMonad.modMask = modm} = [
     -- 0x1008ff4a, XF86LaunchA
     -- 0x1008ff4a
   , ((modm .|. shiftMask, xK_F12),     spawn "systemctl suspend")
-                                            ]
+  ]
   ++
   [((modm, k), goToTopic $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
   ++
