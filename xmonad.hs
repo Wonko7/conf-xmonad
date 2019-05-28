@@ -75,6 +75,7 @@ import XMonad.MyStuff.AddRosters
 
 main = xmonad $ ewmh desktopConfig
   {   keys              = myKeys
+    , mouseBindings     = myMouseBindings
     , terminal          = myTerminal
     , workspaces        = myTopics
     , layoutHook        = myLayouts
@@ -143,7 +144,8 @@ myTopConf = def
       [   ("1", spawnTmuxSession "gentoo")
         , ("2",    spawnRemoteTmuxSession "wg.nostromo.local" "gentoo"
                 >> spawnRemoteTmuxSession "undefined.re"   "gentoo"
-                >> spawnRemoteTmuxSession "wg.serenity.local" "gentoo"
+                >> spawnCmd "ssh root@5.39.77.155"
+                -- >> spawnRemoteTmuxSession "wg.serenity.local" "gentoo"
           )
   -- [((modm .|. shiftMask, k), windows $ W.shift $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
         , ("3", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
@@ -305,7 +307,16 @@ ks conf@XConfig {XMonad.modMask = modm} = [
   ++
   [((modm .|. shiftMask, k), windows $ W.shift $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
 
+
 modalmode conf@XConfig {XMonad.modMask = modm} = [ ((m `xor` modm, k), a >> (SM.submap . M.fromList $ modalmode conf)) | ((m, k), a) <- ks conf ]
 
 myKeys :: XConfig Layout -> M.Map (KeyMask, KeySym) (X ())
 myKeys conf@XConfig {XMonad.modMask = modm} = M.fromList $ ((modm, xK_n), SM.submap . M.fromList $ modalmode conf) : ks conf
+
+myMouseBindings XConfig {XMonad.modMask = modm} = M.fromList
+  [     ((modm, button1), \w -> focus w >> mouseMoveWindow w>> windows W.shiftMaster)
+      -- mod-button2, Raise the window to the top of the stack... useless FIXME could find something useful here
+      , ((modm,button2), \w -> focus w >> windows W.shiftMaster)
+      -- mod-button3, Set the window to floating mode and resize by dragging
+      , ((modm,button3), \w -> focus w >> mouseResizeWindow w >> windows W.shiftMaster)
+  ]
