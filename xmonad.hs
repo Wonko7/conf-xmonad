@@ -143,14 +143,16 @@ myTopConf = def
     , topicActions = M.fromList
       [   ("1", spawnTmuxSession "gentoo")
         , ("2",    spawnRemoteTmuxSession "wg.nostromo.local" "gentoo"
-                >> spawnRemoteTmuxSession "undefined.re"   "gentoo"
-                >> spawnCmd "ssh root@5.39.77.155"
+                >> spawnRemoteTmuxSession "wg.undefined.local" "gentoo"
+                >> spawnRemoteTmuxSession "5.39.77.155" "gentoo"
+                -- >> spawnCmd "ssh -t root@5.39.77.155 tmux attach -t install"
                 -- >> spawnRemoteTmuxSession "wg.serenity.local" "gentoo"
+                -- >> spawnRemoteTmuxSession "wg.daban-urnud.local" "gentoo"
           )
   -- [((modm .|. shiftMask, k), windows $ W.shift $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
         , ("3", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
         , ("4", spawnHere "firefox -P uman")
-        , ("8", spawnTmuxSession "umanlife")
+        , ("8", spawnTmuxSession "2m")
         , ("9", spawnTmuxSession "chat" >> spawnHere "pidgin")
       ]
   }
@@ -241,8 +243,8 @@ ks conf@XConfig {XMonad.modMask = modm} = [
       , ((0, xK_t), spawnHere "transmission-qt")
       , ((0, xK_s), SM.submap . M.fromList $
         [   ((0, xK_c), spawnTmuxSession "clj")
-          , ((0, xK_u), spawnTmuxSession "umanlife")
-          , ((0, xK_w), spawnTmuxSession "umanlife")
+          , ((0, xK_u), spawnTmuxSession "2m")
+          , ((0, xK_w), spawnTmuxSession "2m")
           , ((0, xK_g), spawnTmuxSession "gentoo")
         ])
       , ((0, xK_b), SM.submap . M.fromList $
@@ -271,12 +273,13 @@ ks conf@XConfig {XMonad.modMask = modm} = [
     -- launch stuff!
   --, ((modm,               xK_z),       spawn "xscreensaver-command --lock")
   , ((modm .|. shiftMask, xK_i),       spawnHere "urxvt")
-  --, ((modm,               xK_z),       spawn "xscreensaver-command --lock")
-  , ((modm, xK_z),                          SM.submap . M.fromList $
-    [   ((modm, xK_i), sendMessage zoomIn)
-      , ((modm, xK_o), sendMessage zoomOut)
-      , ((modm, xK_z), spawn "xscreensaver-command --lock")
-    ])
+  , ((modm,               xK_z),       spawn "xscreensaver-command --lock")
+  --
+  --, ((modm, xK_z),                          SM.submap . M.fromList $
+  --  [   ((modm, xK_i), sendMessage zoomIn)
+  --    , ((modm, xK_o), sendMessage zoomOut)
+  --    , ((modm, xK_z), spawn "xscreensaver-command --lock")
+  --  ])
     -- , ((modm .|. shiftMask, xK_period),  spawnTmuxSession "clj") -- not sure
     -- FIXME do something better with this!
     --, ((modm .|. shiftMask, xK_t),       spawnHere "transmission-qt") -- FIXME up for grabs
