@@ -160,7 +160,7 @@ myTopConf = def
         , ("8", spawnTmuxSession "2m")
         , ("9", spawnTmuxSession "chat" >> spawnHere "pidgin")
         , ("10", spawnHere $ myTerminal ++ " -e tmux")
-        , ("11", spawn "VIM_SERVER=DANCE_COMMANDER ~/conf/vim/nvim.sh")
+        , ("11", spawn "VIM_SERVER=DANCE_COMMANDER ~/conf/misc/scripts/nvim.sh")
         , ("12", spawnHere "firefox -P small")
       ]
   }
