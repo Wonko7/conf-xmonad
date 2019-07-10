@@ -16,26 +16,25 @@ import Graphics.X11.Xlib
 import System.IO
 import Data.Ratio ((%))
 import Data.IORef
-
-import XMonad.Actions.DynamicWorkspaces
+import XMonad.Core as XMonad
 import XMonad.Hooks.FadeInactive
 
 -- actions
-import XMonad.Actions.CycleWS
-import XMonad.Actions.CycleWindows
-import XMonad.Actions.WindowGo
-import XMonad.Actions.Navigation2D
 import qualified XMonad.Actions.Search as S
 import qualified XMonad.Actions.Submap as SM
+import XMonad.Actions.CycleWindows
+import XMonad.Actions.CycleWS
+import XMonad.Actions.DynamicWorkspaces
 import XMonad.Actions.GridSelect
-import XMonad.Actions.SpawnOn
-import XMonad.Core as XMonad hiding
-        (focusFollowsMouse)
-import XMonad.Actions.UpdatePointer
-import XMonad.Actions.TopicSpace
-import XMonad.Actions.WithAll
 import XMonad.Actions.GroupNavigation
+import XMonad.Actions.Navigation2D
+import XMonad.Actions.OnScreen
 import XMonad.Actions.RotSlaves
+import XMonad.Actions.SpawnOn
+import XMonad.Actions.TopicSpace
+import XMonad.Actions.UpdatePointer
+import XMonad.Actions.WindowGo
+import XMonad.Actions.WithAll
 
 -- utils
 import XMonad.Util.NamedScratchpad
@@ -138,11 +137,11 @@ spawnRemoteTmuxSession host session = spawn $ myTerminal ++ " -e ssh -t " ++ hos
 spawnCmd cmd                        = spawn $ myTerminal ++ " -e " ++ cmd
 
 myTopics :: [Topic]
-myTopics = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
+myTopics = [[x] | x <- ['1'..'9']] ++ [['1', x] | x <- ['1'..'9']] -- "1" --> "19", skipping 10 & 0
 
 myTopConf :: TopicConfig
 myTopConf = def
-  {   topicDirs = M.fromList [(show i, "~/") | i <- [1..9]]
+  {   topicDirs = M.fromList [(show i, "~/") | i <- [1..9] ++ [11 .. 19]]
     , defaultTopic = "1"
     , defaultTopicAction = const $ return ()
     , topicActions = M.fromList
@@ -158,27 +157,32 @@ myTopConf = def
         , ("3", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
         , ("4", spawnHere "firefox -P uman")
         , ("8", spawnTmuxSession "2m")
-        , ("9", spawnTmuxSession "chat" >> spawnHere "pidgin")
-        , ("10", spawnHere $ myTerminal ++ " -e tmux")
-        , ("11", spawn "VIM_SERVER=DANCE_COMMANDER ~/conf/misc/scripts/nvim.sh")
-        , ("12", spawnHere "firefox -P small")
+        -- , ("9", spawnTmuxSession "chat" >> spawnHere "pidgin") -- TODO time test this
+        , ("9", spawnHere "pidgin")
+        --
+        , ("11", spawnTmuxSession "logs")
+        , ("13", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
+        , ("14", spawnHere "firefox -P small")
+        , ("17", spawnHere $ myTerminal ++ " -e tmux")
+        , ("18", spawn "VIM_SERVER=DANCE_COMMANDER ~/conf/misc/scripts/nvim.sh")
+        , ("19", spawnTmuxSession "chat")
       ]
   }
 
-addTopicHist = do winset <- gets windowset;
-                  setLastFocusedTopic (W.currentTag winset) (const True)
-
-toggleTopics = do addTopicHist;
-                  switchNthLastFocused myTopConf 1;
-
-goToTopic i = do addTopicHist;
-                 switchTopic myTopConf i;
-
-prevTS = do addTopicHist;
-            prevWS;
-
-nextTS = do addTopicHist;
-            nextWS;
+-- addTopicHist = do winset <- gets windowset;
+--                   setLastFocusedTopic (W.currentTag winset) (const True)
+--
+-- toggleTopics = do addTopicHist;
+--                   switchNthLastFocused myTopConf 1;
+--
+-- goToTopic i = do addTopicHist;
+--                  switchTopic myTopConf i;
+--
+-- prevTS = do addTopicHist;
+--             prevWS;
+--
+-- nextTS = do addTopicHist;
+--             nextWS;
 
 
 myLogHook :: IORef (DS.Set Window) -> X ()
@@ -217,13 +221,13 @@ ks toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
   , ((modm,                 xK_i),          sendMessage Expand)
     ---------
       -- send window to next WS
-  , ((modm .|. shiftMask,   xK_h),          shiftToPrev >> prevTS)
-  , ((modm .|. shiftMask,   xK_l),          shiftToNext >> nextTS)
+  , ((modm .|. shiftMask,   xK_h),          shiftToPrev >> prevWS)
+  , ((modm .|. shiftMask,   xK_l),          shiftToNext >> nextWS)
     -- next WS
-  , ((modm,                 xK_h),          prevTS)
-  , ((modm,                 xK_l),          nextTS)
+  , ((modm,                 xK_h),          prevWS)
+  , ((modm,                 xK_l),          nextWS)
     ---------
-  , ((modm,                 xK_space),      toggleTopics)
+  , ((modm,                 xK_space),      toggleWS)
   , ((modm .|. shiftMask,   xK_space),      nextMatch History (return True)) -- FIXME useless
     --, ((modm , xK_BackSpace), cycleRecentWindows [xK_Alt_L] xK_j xK_k)
     --, ((modm , xK_BackSpace), goToSelected gridselectWindow)
@@ -285,8 +289,8 @@ ks toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
     -- Restart xmonad
   , ((modm,               xK_q),       spawn "xmonad --recompile; xmonad --restart")
     -- group nav: useless shite.
-  , ((modm,               xK_0),       goToTopic $ show 11)
-  , ((modm .|. shiftMask, xK_0),       windows $ W.shift $ show 11)
+  -- , ((modm,               xK_0),       goToTopic $ show 11) -- FIXME
+  , ((modm .|. shiftMask, xK_0),       windows $ W.shift $ show 11) -- FIXME
   , ((modm,               xK_v),       nextMatchOrDo Forward (className =? "Gvim") (spawnHere "~/local/bin/gvim"))
   , ((modm .|. shiftMask, xK_v),       nextMatchOrDo Backward (className =? "Gvim") (spawnHere "~/local/bin/gvim"))
     -- launch stuff!
@@ -297,12 +301,13 @@ ks toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
   , ((modm, xK_z),                          SM.submap . M.fromList $
     [   ((modm,      xK_z),      spawn "xscreensaver-command --lock")
       , ((0,         xK_f),      withFocused $ io . modifyIORef toggleFadeSet . toggleFadeOut)
-      , ((0,         xK_7),      goToTopic $ show 10)
-      , ((0,         xK_8),      goToTopic $ show 11)
-      , ((0,         xK_4),      goToTopic $ show 12)
-      , ((0,         xK_1),      goToTopic $ show 10)
-      , ((0,         xK_2),      goToTopic $ show 11)
-      , ((0,         xK_3),      goToTopic $ show 12)
+      , ((0,         xK_s),      shiftNextScreen) -- TODO time test this
+      -- , ((0,         xK_7),      goToTopic $ show 10)
+      -- , ((0,         xK_8),      goToTopic $ show 11)
+      -- , ((0,         xK_4),      goToTopic $ show 12)
+      -- , ((0,         xK_1),      goToTopic $ show 10)
+      -- , ((0,         xK_2),      goToTopic $ show 11)
+      -- , ((0,         xK_3),      goToTopic $ show 12)
     ])
     -- , ((modm .|. shiftMask, xK_period),  spawnTmuxSession "clj") -- not sure
     -- FIXME do something better with this!
@@ -334,9 +339,21 @@ ks toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
   , ((modm, xK_b), nextScreen)
   ]
   ++
-  [((modm, k), goToTopic $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
+  [((m .|. modm, k), windows $ f i)
+    | (i, k) <- zip [[x] | x <- ['1'..'9']] [xK_1..xK_9] -- lest we forget: [x] -> char vs [char] = string in haskell --> "1" through "9"
+    , (f, m) <- [ (viewOnScreen 0, 0)
+                , (W.shift, shiftMask)]]
   ++
-  [((modm .|. shiftMask, k), windows $ W.shift $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
+  [((m .|. modm, k), windows $ f i)
+    | (i, k) <- zip [['1', x] | x <- ['1'..'9']] [xK_1..xK_9] -- lest we forget: [x] -> char vs [char] = string in haskell --> "11" through "19"
+    , (f, m) <- [ (viewOnScreen 1, controlMask)
+                , (W.shift, controlMask .|. shiftMask)]]
+--    ++
+
+  ---- ++
+  ---- [((modm, k), goToTopic $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
+  ---- ++
+  ---- [((modm .|. shiftMask, k), windows $ W.shift $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
 --  ++
 --  [((m .|. modm, key), screenWorkspace sc >>= flip whenJust (windows . f))
 --    | (key, sc) <- zip [xK_g, xK_v, xK_d] [0..]
