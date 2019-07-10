@@ -98,11 +98,16 @@ myLayouts = noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts $ equa
     onWorkspaces ["1"] mediaLayouts $
     onWorkspaces ["2"] imTooSquare $
     onWorkspaces ["3"] weAllFloatDownHere $
-    onWorkspaces ["6", "7", "8"] workLayouts $
     onWorkspaces ["4", "5"] browsersLayouts $
+    onWorkspaces ["6", "7", "8"] workLayouts $
     onWorkspaces ["9"] imLayouts $
-    onWorkspaces ["10"] workLayouts $
-    onWorkspaces ["11"] browsersLayouts
+    -- second monitor:
+    onWorkspaces ["11"] mediaLayouts $
+    onWorkspaces ["12"] imTooSquare $
+    onWorkspaces ["13"] weAllFloatDownHere $
+    onWorkspaces ["14", "15"] browsersLayouts $
+    onWorkspaces ["16", "17", "18"] workLayouts $
+    onWorkspaces ["19"] imLayouts
     defLayouts
   where
      workLayouts        = magicFocus (Mirror wtiled) ||| magicFocus wtiled ||| Mirror tiled ||| tiled
@@ -131,6 +136,9 @@ myBorderWidth = 0
 myTerminal :: String
 myTerminal = "~/conf/misc/scripts/st.sh"
 myBrowser  = "firefox"
+sleepHack sleep = spawn $ "pactl set-sink-volume 0 30%; pactl set-sink-volume 1 20%; pactl set-sink-mute 1 true; pactl set-sink-mute 0 true; " -- reset sound
+                  ++ "setxkbmap dvorak; xmodmap ~/conf/misc/xmodmap.laptop.dvorak; " -- reset kbd
+                  ++ "systemctl " ++ sleep
 
 spawnTmuxSession name               = spawn $ "LOAD_TMUX_SESSION=" ++ name ++ " " ++ myTerminal
 spawnRemoteTmuxSession host session = spawn $ myTerminal ++ " -e ssh -t " ++ host ++ " LOAD_TMUX_SESSION=" ++ session ++ " zsh"
@@ -169,6 +177,9 @@ myTopConf = def
       ]
   }
 
+-- use this if each time you change desktop / topic / WS you might start stuff:
+-- right now doing it manually with modm + y
+--
 -- addTopicHist = do winset <- gets windowset;
 --                   setLastFocusedTopic (W.currentTag winset) (const True)
 --
@@ -204,139 +215,89 @@ toggleFadeOut w s | w `DS.member` s = DS.delete w s
 -- doNotFadeOutWindows = title ~? "Call with " <||> className =? "xine" <||> className =? "MPlayer" ===> FIXME title could be intersting!
 
 ks toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
-    -- terminal
-    -- fixme: nothing on D! xk_d, B neither. b & d & g v & 0 & shift v & shift 0 & shift t, shift z, shift period for something fun.
+    -- FIXME: nothing on D! xk_d, B neither.
+    -- b, d, g, v, 0, s, v, backspace   shift v, shift 0, shift t, shift z, shift period for something fun.
+    --
+    -- terminal stuff:
     ((modm, xK_Return),                     spawnHere $ myTerminal ++ " -e tmux")
   , ((modm .|. shiftMask,   xK_Return),     spawnHere myTerminal)
-    -- close focused window
-  , ((modm .|. shiftMask,   xK_c),          kill)
-    ---------
-      -- Rotate through the available layout algorithms
+  , ((modm .|. shiftMask,   xK_i),          spawnHere "urxvt") -- fallback term
+    -- workspace/layout stuff:
   , ((modm,                 xK_Tab),        sendMessage NextLayout)
-    -- Reset the layouts on the current workspace to default
-  , ((modm .|. shiftMask,   xK_Tab),        setLayout $ XMonad.layoutHook conf)
-    ---------
-      -- Shrink/expand the master area
-  , ((modm,                 xK_u),          sendMessage Shrink)
-  , ((modm,                 xK_i),          sendMessage Expand)
-    ---------
-      -- send window to next WS
+  , ((modm .|. shiftMask,   xK_Tab),        setLayout $ XMonad.layoutHook conf) -- reset layouts
   , ((modm .|. shiftMask,   xK_h),          shiftToPrev >> prevWS)
   , ((modm .|. shiftMask,   xK_l),          shiftToNext >> nextWS)
-    -- next WS
   , ((modm,                 xK_h),          prevWS)
   , ((modm,                 xK_l),          nextWS)
-    ---------
   , ((modm,                 xK_space),      toggleWS)
-  , ((modm .|. shiftMask,   xK_space),      nextMatch History (return True)) -- FIXME useless
-    --, ((modm , xK_BackSpace), cycleRecentWindows [xK_Alt_L] xK_j xK_k)
-    --, ((modm , xK_BackSpace), goToSelected gridselectWindow)
-    --, ((modm , xK_BackSpace), nextMatch History (return True))
+  , ((modm .|. shiftMask,   xK_space),      nextScreen)
+  , ((modm,                 xK_u),          sendMessage Shrink) -- master size
+  , ((modm,                 xK_i),          sendMessage Expand)
+  , ((modm,                 xK_comma),      sendMessage (IncMasterN 1)) -- nb windows in master
+  , ((modm,                 xK_period),     sendMessage (IncMasterN (-1)))
+  , ((modm,                 xK_f),          sendMessage (Toggle FULL))
+  , ((modm,                 xK_m),          windows W.swapMaster)
   , ((modm,                 xK_y),          currentTopicAction myTopConf)
-    -- Move focus to the next window
+  , ((modm .|. shiftMask,   xK_b),          sendMessage ToggleStruts) -- Toggle the status bar gap -- Use this binding with avoidStruts from Hooks.ManageDocks.
+  , ((modm,                 xK_t),          sinkAll) --  Push windows back into tiling
+    -- dual monitor sutff:
+  , ((modm,                 xK_b),          nextScreen) -- FIXME deprecate?
+    -- window stuff:
+  , ((modm .|. shiftMask,   xK_c),          kill)
   , ((modm,                 xK_j),          windows W.focusDown)
-    -- Move focus to the previous window
   , ((modm,                 xK_k),          windows W.focusUp)
-    -- Swap the focused window with the next window
   , ((modm .|. shiftMask,   xK_j),          windows W.swapDown)
-    -- Swap the focused window with the previous window
   , ((modm .|. shiftMask,   xK_k),          windows W.swapUp)
-    --------- 2d nav:
-  , ((modm .|. controlMask, xK_j),          windowGo D False)
+  , ((modm .|. controlMask, xK_j),          windowGo D False)  -- 2d nav:
   , ((modm .|. controlMask, xK_k),          windowGo U False)
   , ((modm .|. controlMask, xK_h),          windowGo L False)
   , ((modm .|. controlMask, xK_l),          windowGo R False)
-    -- Move focus to the master window
-  , ((modm,                 xK_m),          windows W.swapMaster)
-    -- ((modm .|. shiftMask, xK_m), sendMessage (Toggle SMARTBORDERS))
-  , ((modm,                 xK_f),          sendMessage (Toggle FULL)) -- ; todo:change: toggle max
-    -- Increment the number of windows in the master area
-  , ((modm,                 xK_comma),      sendMessage (IncMasterN 1))
-  , ((modm,                 xK_period),     sendMessage (IncMasterN (-1)))
-    -- pause and resume duns notifs
+    -- pause and resume dunst notifs
   , ((modm,                 xK_quoteright), spawn "killall -SIGUSR1 dunst")
   , ((modm .|. shiftMask,   xK_quoteright), spawn "killall -SIGUSR2 dunst")
-    -- Toggle the status bar gap -- Use this binding with avoidStruts from Hooks.ManageDocks.
-  , ((modm .|. shiftMask,   xK_b),          sendMessage ToggleStruts)
-    --  , ((modm .|. shiftMask,   xK_b),          SM.submap . M.fromList $ FIXME UP FOR GRABS
-  , ((modm, xK_a),                          SM.submap . M.fromList $
+  , ((modm,                 xK_q),          spawn "xmonad --recompile; xmonad --restart")
+  -- , ((modm .|. shiftMask, xK_v),       nextMatchOrDo Backward (className =? "Gvim") (spawnHere "~/local/bin/gvim")) -- this exits, might use this someday??
+    -- mediakeys / hotkeys:
+  , ((0, 0x1008ff12), spawn "pactl set-sink-mute 0 toggle; pactl set-sink-mute 1 toggle")-- XF86AudioMute
+  , ((0, 0x1008ff13), spawn "pactl set-sink-volume 0 +10%; pactl set-sink-volume 1 +10%") -- "XF86AudioRaiseVolume"
+  , ((0, 0x1008ff11), spawn "pactl set-sink-volume 0 -10%; pactl set-sink-volume 1 -10%") -- XF86AudioLowerVolume
+  , ((0, 0x1008ffb2), spawn "pactl set-source-mute 0 toggle; pactl set-source-mute 1 toggle") -- toggle mic
+  , ((0, 0x1008ff02), spawn "light -A 10") -- brightness:
+  , ((0, 0x1008ff03), spawn "light -U 10")
+    -- launch stuff!
+  , ((modm, xK_a), SM.submap . M.fromList $
     [   ((0, xK_c), spawnHere "calibre")
+      , ((0, xK_d), spawnHere "dolphin")
+      , ((0, xK_g), spawnHere "gimp")
       , ((0, xK_p), spawnHere "pavucontrol-qt")
       , ((0, xK_w), spawnHere "wireshark")
       , ((0, xK_t), spawnHere "transmission-qt")
       , ((0, xK_s), SM.submap . M.fromList $
         [   ((0, xK_c), spawnTmuxSession "clj")
-          , ((0, xK_u), spawnTmuxSession "2m")
           , ((0, xK_w), spawnTmuxSession "2m")
           , ((0, xK_g), spawnTmuxSession "gentoo")
         ])
       , ((0, xK_b), SM.submap . M.fromList $
         [   ((0, xK_q), spawnHere "qutebrowser")
           , ((0,         xK_c), spawnHere "chromium")
+          , ((0,         xK_g), spawnHere "google-chrome")
           , ((0,         xK_f), spawnHere "firefox -P uman")
           , ((shiftMask, xK_f), spawnHere "firefox --ProfileManager --new-instance")
           , ((0,         xK_o), spawnHere "opera")
           , ((0,         xK_t), spawnHere "~/local/tor-browser_en-US/start-tor-browser")
         ])
     ])
-    -- Push window back into tiling
-  , ((modm,               xK_t),       sinkAll)
-    --------- reset mouse pointer
-    --, ((modm , xK_z), updatePointer $ Relative 0.5 0.5) -- nope, never ever use this
-    -- Quit xmonad
-    -- , ((modm .|. shiftMask , xK_q), io (exitWith ExitSuccess))
-  --, ((modm .|. shiftMask, xK_q),       spawn "qdbus org.kde.ksmserver /KSMServer logout -1 -1 -1")
-    -- Restart xmonad
-  , ((modm,               xK_q),       spawn "xmonad --recompile; xmonad --restart")
-    -- group nav: useless shite.
-  -- , ((modm,               xK_0),       goToTopic $ show 11) -- FIXME
-  , ((modm .|. shiftMask, xK_0),       windows $ W.shift $ show 11) -- FIXME
-  , ((modm,               xK_v),       nextMatchOrDo Forward (className =? "Gvim") (spawnHere "~/local/bin/gvim"))
-  , ((modm .|. shiftMask, xK_v),       nextMatchOrDo Backward (className =? "Gvim") (spawnHere "~/local/bin/gvim"))
-    -- launch stuff!
-  --, ((modm,               xK_z),       spawn "xscreensaver-command --lock")
-  , ((modm .|. shiftMask, xK_i),       spawnHere "urxvt")
-  -- , ((modm,               xK_z),       spawn "xscreensaver-command --lock")
-  --
-  , ((modm, xK_z),                          SM.submap . M.fromList $
-    [   ((modm,      xK_z),      spawn "xscreensaver-command --lock")
-      , ((0,         xK_f),      withFocused $ io . modifyIORef toggleFadeSet . toggleFadeOut)
-      , ((0,         xK_s),      shiftNextScreen) -- TODO time test this
-      -- , ((0,         xK_7),      goToTopic $ show 10)
-      -- , ((0,         xK_8),      goToTopic $ show 11)
-      -- , ((0,         xK_4),      goToTopic $ show 12)
-      -- , ((0,         xK_1),      goToTopic $ show 10)
-      -- , ((0,         xK_2),      goToTopic $ show 11)
-      -- , ((0,         xK_3),      goToTopic $ show 12)
+    -- random things:
+  , ((modm, xK_z), SM.submap . M.fromList $
+    [   ((modm,               xK_z),      spawn "xscreensaver-command --lock")
+      , ((modm,               xK_s),      sleepHack "suspend")
+      , ((modm .|. shiftMask, xK_s),      sleepHack "hybrid-sleep")
+      , ((modm,               xK_h),      sleepHack "hybrid-sleep")
+      , ((modm .|. shiftMask, xK_h),      sleepHack "hibernate")
+      , ((0,                  xK_f),      withFocused $ io . modifyIORef toggleFadeSet . toggleFadeOut)
+      , ((0,                  xK_s),      shiftNextScreen >> nextScreen) -- TODO time test this
+      --, ((modm ,     xK_m),      updatePointer (0.5 0.5) (0, 0)) -- nope, never ever use this, does not work as is outside of loghook.
     ])
-    -- , ((modm .|. shiftMask, xK_period),  spawnTmuxSession "clj") -- not sure
-    -- FIXME do something better with this!
-    --, ((modm .|. shiftMask, xK_t),       spawnHere "transmission-qt") -- FIXME up for grabs
-    -- hotkeys:
-    -- -- XF86AudioMute
-  , ((0,                  0x1008ff12), spawn "pactl set-sink-mute 0 toggle; pactl set-sink-mute 1 toggle")
-    -- "XF86AudioRaiseVolume"
-  , ((0,                  0x1008ff13), spawn "pactl set-sink-volume 0 +10%; pactl set-sink-volume 1 +10%")
-    -- XF86AudioLowerVolume
-  , ((0,                  0x1008ff11), spawn "pactl set-sink-volume 0 -10%; pactl set-sink-volume 1 -10%")
-    -- XF86AudioLowerVolume -- toggle mic
-  , ((0,                  0x1008ffb2), spawn "pactl set-source-mute 0 toggle; pactl set-source-mute 1 toggle")
-    -- brightness
-  , ((0,                  0x1008ff02), spawn "light -A 10")
-  , ((0,                  0x1008ff03), spawn "light -U 10")
-    -- should be kill wifi, suspend for me:
-    --, ((0, 0x1008ff95), spawn "systemctl suspend")
-    -- 0x1008ff81, should be XF86Tools, hybrid sleep:
-  , ((modm .|. shiftMask, xK_F10),     spawn "systemctl hibernate")
-    -- XF86Search suspend:
-  , ((modm .|. shiftMask, xK_F11),     spawn "systemctl hybrid-sleep")
-    -- 0x1008ff4a, XF86LaunchA
-    -- 0x1008ff4a
-  , ((modm .|. shiftMask, xK_F12),     spawn "systemctl suspend")
-  --
-  --, (( modm, xK_b ), screenWorkspace 0 >>= flip whenJust (windows . W.view))
-  --, (( modm, xK_d ), screenWorkspace 1 >>= flip whenJust (windows . W.view))
-  , ((modm, xK_b), nextScreen)
   ]
   ++
   [((m .|. modm, k), windows $ f i)
@@ -348,27 +309,15 @@ ks toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
     | (i, k) <- zip [['1', x] | x <- ['1'..'9']] [xK_1..xK_9] -- lest we forget: [x] -> char vs [char] = string in haskell --> "11" through "19"
     , (f, m) <- [ (viewOnScreen 1, controlMask)
                 , (W.shift, controlMask .|. shiftMask)]]
---    ++
-
-  ---- ++
-  ---- [((modm, k), goToTopic $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
-  ---- ++
-  ---- [((modm .|. shiftMask, k), windows $ W.shift $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
---  ++
---  [((m .|. modm, key), screenWorkspace sc >>= flip whenJust (windows . f))
---    | (key, sc) <- zip [xK_g, xK_v, xK_d] [0..]
---    , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
 
 
-
-modalmode toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [ ((m `xor` modm, k), a >> (SM.submap . M.fromList $ modalmode toggleFadeSet conf)) | ((m, k), a) <- ks toggleFadeSet conf ]
-
+modalmode toggleFadeSet conf@(XConfig {XMonad.modMask = modm}) = [ ((m `xor` modm, k), a >> (SM.submap . M.fromList $ modalmode toggleFadeSet conf)) | ((m, k), a) <- ks toggleFadeSet conf ]
 
 myKeys :: IORef (DS.Set Window) -> XConfig Layout -> M.Map (KeyMask, KeySym) (X ())
-myKeys toggleFadeSet conf@XConfig {XMonad.modMask = modm} = M.fromList $ ((modm, xK_n), SM.submap . M.fromList $ modalmode toggleFadeSet conf) : ks toggleFadeSet conf
+myKeys toggleFadeSet conf@(XConfig {XMonad.modMask = modm}) = M.fromList $ ((modm, xK_n), SM.submap . M.fromList $ modalmode toggleFadeSet conf) : ks toggleFadeSet conf
 
 myMouseBindings XConfig {XMonad.modMask = modm} = M.fromList
-  [     ((modm, button1), \w -> focus w >> mouseMoveWindow w>> windows W.shiftMaster)
+  [     ((modm, button1), \w -> focus w >> mouseMoveWindow w >> windows W.shiftMaster)
       -- mod-button2, Raise the window to the top of the stack... useless FIXME could find something useful here
       , ((modm, button2), \w -> focus w >> windows W.shiftMaster)
       -- mod-button3, Set the window to floating mode and resize by dragging
