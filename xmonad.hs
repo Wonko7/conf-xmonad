@@ -222,6 +222,7 @@ ks toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
     ((modm, xK_Return),                     spawnHere $ myTerminal ++ " -e tmux")
   , ((modm .|. shiftMask,   xK_Return),     spawnHere myTerminal)
   , ((modm .|. shiftMask,   xK_i),          spawnHere "urxvt") -- fallback term
+  , ((modm,                 xK_r),          spawnHere "rofi -combi-modi window,drun,ssh -theme solarized -font \"fira 30\" -show combi")
     -- workspace/layout stuff:
   , ((modm,                 xK_Tab),        sendMessage NextLayout)
   , ((modm .|. shiftMask,   xK_Tab),        setLayout $ XMonad.layoutHook conf) -- reset layouts
