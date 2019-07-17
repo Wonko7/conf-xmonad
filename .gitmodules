@@ -1,0 +1,4 @@
+[submodule "lib/XMonad/Layout"]
+	path = lib/XMonad/Layout
+	url = git@github.com:egasimus/xmonad-equalspacing
+	branch = master
