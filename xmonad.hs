@@ -94,6 +94,7 @@ main = do
     }
       where unfloat = ask >>= doF . W.sink
 
+    -- spacingRaw True (Border 30 30 30 30) False (Border 15 15 15 15) False $
 myLayouts = noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts $ equalSpacing 30 0 0 5 $
     onWorkspaces ["1"] mediaLayouts $
     onWorkspaces ["2"] imTooSquare $
@@ -300,6 +301,8 @@ ks toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
       --, ((modm ,     xK_m),      updatePointer (0.5 0.5) (0, 0)) -- nope, never ever use this, does not work as is outside of loghook.
     ])
   ]
+  ++ -- this could be in previous [], but this should be grouped with the next group of keyboard definitions:
+  [ ((modm, xK_0), windows (viewOnScreen 1 "18") >> currentTopicAction myTopConf) ] -- raise dance commander on external monintor.
   ++
   [((m .|. modm, k), windows $ f i)
     | (i, k) <- zip [[x] | x <- ['1'..'9']] [xK_1..xK_9] -- lest we forget: [x] -> char vs [char] = string in haskell --> "1" through "9"
