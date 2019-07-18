@@ -70,7 +70,6 @@ import XMonad.Layout.ZoomRow
 import XMonad.Util.WindowProperties
 
 -- local stuff:
-import XMonad.Layout.EqualSpacing
 import XMonad.MyStuff.AddRosters
 
 main = do
@@ -94,8 +93,8 @@ main = do
     }
       where unfloat = ask >>= doF . W.sink
 
-    -- spacingRaw True (Border 30 30 30 30) False (Border 15 15 15 15) False $
-myLayouts = noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts $ equalSpacing 30 0 0 5 $
+myLayouts = noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts $
+    spacingRaw False (Border 20 20 20 20) True (Border 20 20 20 20) True $
     onWorkspaces ["1"] mediaLayouts $
     onWorkspaces ["2"] imTooSquare $
     onWorkspaces ["3"] weAllFloatDownHere $
@@ -160,7 +159,7 @@ myTopConf = def
                 >> spawnRemoteTmuxSession "5.39.77.155" "gentoo"
                 -- >> spawnCmd "ssh -t root@5.39.77.155 tmux attach -t install"
                 -- >> spawnRemoteTmuxSession "wg.serenity.local" "gentoo"
-                -- >> spawnRemoteTmuxSession "wg.daban-urnud.local" "gentoo"
+                >> spawnRemoteTmuxSession "wg.daban-urnud.local" "gentoo"
           )
   -- [((modm .|. shiftMask, k), windows $ W.shift $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
         , ("3", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
@@ -223,7 +222,8 @@ ks toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
     ((modm, xK_Return),                     spawnHere $ myTerminal ++ " -e tmux")
   , ((modm .|. shiftMask,   xK_Return),     spawnHere myTerminal)
   , ((modm .|. shiftMask,   xK_i),          spawnHere "urxvt") -- fallback term
-  , ((modm,                 xK_r),          spawnHere "rofi -combi-modi window,drun,ssh -theme solarized -font \"fira 30\" -show combi")
+
+  , ((modm,                 xK_r),          spawnHere "rofi -combi-modi window,drun,ssh -theme lb -font \"fira 30\" -show combi") -- themes: gruvbox-dark-soft, lb, Paper, solarized_alternate
     -- workspace/layout stuff:
   , ((modm,                 xK_Tab),        sendMessage NextLayout)
   , ((modm .|. shiftMask,   xK_Tab),        setLayout $ XMonad.layoutHook conf) -- reset layouts
@@ -232,18 +232,16 @@ ks toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
   , ((modm,                 xK_h),          prevWS)
   , ((modm,                 xK_l),          nextWS)
   , ((modm,                 xK_space),      toggleWS)
-  , ((modm .|. shiftMask,   xK_space),      nextScreen)
+  , ((modm .|. shiftMask,   xK_space),      nextScreen) -- toggle screens/monitors
   , ((modm,                 xK_u),          sendMessage Shrink) -- master size
   , ((modm,                 xK_i),          sendMessage Expand)
   , ((modm,                 xK_comma),      sendMessage (IncMasterN 1)) -- nb windows in master
-  , ((modm,                 xK_period),     sendMessage (IncMasterN (-1)))
+  , ((modm,                 xK_period),     sendMessage (IncMasterN $ -1))
   , ((modm,                 xK_f),          sendMessage (Toggle FULL))
   , ((modm,                 xK_m),          windows W.swapMaster)
   , ((modm,                 xK_y),          currentTopicAction myTopConf)
   , ((modm .|. shiftMask,   xK_b),          sendMessage ToggleStruts) -- Toggle the status bar gap -- Use this binding with avoidStruts from Hooks.ManageDocks.
   , ((modm,                 xK_t),          sinkAll) --  Push windows back into tiling
-    -- dual monitor sutff:
-  , ((modm,                 xK_b),          nextScreen) -- FIXME deprecate?
     -- window stuff:
   , ((modm .|. shiftMask,   xK_c),          kill)
   , ((modm,                 xK_j),          windows W.focusDown)
@@ -291,11 +289,19 @@ ks toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
     ])
     -- random things:
   , ((modm, xK_z), SM.submap . M.fromList $
-    [   ((modm,               xK_z),      spawn "xscreensaver-command --lock")
+    [ -- session locking:
+        ((modm,               xK_z),      spawn "xscreensaver-command --lock")
       , ((modm,               xK_s),      sleepHack "suspend")
       , ((modm .|. shiftMask, xK_s),      sleepHack "hybrid-sleep")
       , ((modm,               xK_h),      sleepHack "hybrid-sleep")
       , ((modm .|. shiftMask, xK_h),      sleepHack "hibernate")
+
+      -- window borders:
+      , ((modm,               xK_e),      decScreenWindowSpacing 10)
+      , ((modm,               xK_u),      incScreenWindowSpacing 10)
+      , ((modm,               xK_i),      toggleWindowSpacingEnabled >> toggleScreenSpacingEnabled)
+
+      -- random:
       , ((0,                  xK_f),      withFocused $ io . modifyIORef toggleFadeSet . toggleFadeOut)
       , ((0,                  xK_s),      shiftNextScreen >> nextScreen) -- TODO time test this
       --, ((modm ,     xK_m),      updatePointer (0.5 0.5) (0, 0)) -- nope, never ever use this, does not work as is outside of loghook.
