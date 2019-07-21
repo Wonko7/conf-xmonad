@@ -135,7 +135,7 @@ myBorderWidth = 0
 
 myTerminal :: String
 myTerminal = "~/conf/misc/scripts/st.sh"
-myBrowser  = "firefox"
+myBrowser  = "firefox-bin"
 sleepHack sleep = spawn $ "pactl set-sink-volume 0 30%; pactl set-sink-volume 1 20%; pactl set-sink-mute 1 true; pactl set-sink-mute 0 true; " -- reset sound
                   ++ "setxkbmap dvorak; xmodmap ~/conf/misc/xmodmap.laptop.dvorak; " -- reset kbd
                   ++ "systemctl " ++ sleep
@@ -163,14 +163,14 @@ myTopConf = def
           )
   -- [((modm .|. shiftMask, k), windows $ W.shift $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
         , ("3", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
-        , ("4", spawnHere "firefox -P uman")
+        , ("4", spawnHere $ myBrowser ++ " -P uman")
         , ("8", spawnTmuxSession "2m")
         -- , ("9", spawnTmuxSession "chat" >> spawnHere "pidgin") -- TODO time test this
         , ("9", spawnHere "pidgin")
         --
         , ("11", spawnTmuxSession "logs")
         , ("13", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
-        , ("14", spawnHere "firefox -P small")
+        , ("14", spawnHere $ myBrowser ++ " -P small")
         , ("17", spawnHere $ myTerminal ++ " -e tmux")
         , ("18", spawn "VIM_SERVER=DANCE_COMMANDER ~/conf/misc/scripts/nvim.sh")
         , ("19", spawnTmuxSession "chat")
@@ -281,8 +281,8 @@ ks toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
         [   ((0, xK_q), spawnHere "qutebrowser")
           , ((0,         xK_c), spawnHere "chromium")
           , ((0,         xK_g), spawnHere "google-chrome")
-          , ((0,         xK_f), spawnHere "firefox -P uman")
-          , ((shiftMask, xK_f), spawnHere "firefox --ProfileManager --new-instance")
+          , ((0,         xK_f), spawnHere $ myBrowser ++ " -P uman")
+          , ((shiftMask, xK_f), spawnHere $ myBrowser ++ " --ProfileManager --new-instance")
           , ((0,         xK_o), spawnHere "opera")
           , ((0,         xK_t), spawnHere "~/local/tor-browser_en-US/start-tor-browser")
         ])
