@@ -3,6 +3,7 @@
 import Data.Bits
 import Data.List
 import Control.Monad (liftM, filterM, join)
+import Network.HostName
 
 -- Import stuff
 import XMonad
@@ -74,8 +75,9 @@ import XMonad.MyStuff.AddRosters
 
 main = do
   toggleFadeSet <- newIORef DS.empty
+  hostname      <- getHostName
   xmonad $ ewmh desktopConfig
-    {   keys              = myKeys toggleFadeSet
+    {   keys              = myKeys hostname toggleFadeSet
       , mouseBindings     = myMouseBindings
       , terminal          = myTerminal
       , workspaces        = myTopics
@@ -135,7 +137,10 @@ myBorderWidth = 0
 
 myTerminal :: String
 myTerminal = "~/conf/misc/scripts/st.sh"
-myBrowser  = "firefox-bin"
+
+myBrowser "yggdrassil"  = "firefox"
+myBrowser "daban-urnud" = "firefox-bin"
+
 sleepHack sleep = spawn $ "pactl set-sink-volume 0 30%; pactl set-sink-volume 1 20%; pactl set-sink-mute 1 true; pactl set-sink-mute 0 true; " -- reset sound
                   ++ "setxkbmap dvorak; xmodmap ~/conf/misc/xmodmap.laptop.dvorak; " -- reset kbd
                   ++ "systemctl " ++ sleep
@@ -147,8 +152,8 @@ spawnCmd cmd                        = spawn $ myTerminal ++ " -e " ++ cmd
 myTopics :: [Topic]
 myTopics = [[x] | x <- ['1'..'9']] ++ [['1', x] | x <- ['1'..'9']] -- "1" --> "19", skipping 10 & 0
 
-myTopConf :: TopicConfig
-myTopConf = def
+myTopConf :: String -> TopicConfig
+myTopConf hostname = def
   {   topicDirs = M.fromList [(show i, "~/") | i <- [1..9] ++ [11 .. 19]]
     , defaultTopic = "1"
     , defaultTopicAction = const $ return ()
@@ -163,14 +168,14 @@ myTopConf = def
           )
   -- [((modm .|. shiftMask, k), windows $ W.shift $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
         , ("3", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
-        , ("4", spawnHere $ myBrowser ++ " -P uman")
+        , ("4", spawnHere $ myBrowser hostname ++ " -P uman")
         , ("8", spawnTmuxSession "2m")
         -- , ("9", spawnTmuxSession "chat" >> spawnHere "pidgin") -- TODO time test this
         , ("9", spawnHere "pidgin")
         --
         , ("11", spawnTmuxSession "logs")
         , ("13", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
-        , ("14", spawnHere $ myBrowser ++ " -P small")
+        , ("14", spawnHere $ myBrowser hostname ++ " -P small")
         , ("17", spawnHere $ myTerminal ++ " -e tmux")
         , ("18", spawn "VIM_SERVER=DANCE_COMMANDER ~/conf/misc/scripts/nvim.sh")
         , ("19", spawnTmuxSession "chat")
@@ -214,7 +219,7 @@ toggleFadeOut w s | w `DS.member` s = DS.delete w s
 -- >  ,((modm, xK_g), onAllWS W.swapMaster)
 -- doNotFadeOutWindows = title ~? "Call with " <||> className =? "xine" <||> className =? "MPlayer" ===> FIXME title could be intersting!
 
-ks toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
+ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
     -- FIXME: nothing on D! xk_d, B neither.
     -- b, d, g, v, 0, s, v, backspace   shift v, shift 0, shift t, shift z, shift period for something fun.
     --
@@ -239,7 +244,7 @@ ks toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
   , ((modm,                 xK_period),     sendMessage (IncMasterN $ -1))
   , ((modm,                 xK_f),          sendMessage (Toggle FULL))
   , ((modm,                 xK_m),          windows W.swapMaster)
-  , ((modm,                 xK_y),          currentTopicAction myTopConf)
+  , ((modm,                 xK_y),          currentTopicAction $ myTopConf hostname)
   , ((modm .|. shiftMask,   xK_b),          sendMessage ToggleStruts) -- Toggle the status bar gap -- Use this binding with avoidStruts from Hooks.ManageDocks.
   , ((modm,                 xK_t),          sinkAll) --  Push windows back into tiling
     -- window stuff:
@@ -281,8 +286,8 @@ ks toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
         [   ((0, xK_q), spawnHere "qutebrowser")
           , ((0,         xK_c), spawnHere "chromium")
           , ((0,         xK_g), spawnHere "google-chrome")
-          , ((0,         xK_f), spawnHere $ myBrowser ++ " -P uman")
-          , ((shiftMask, xK_f), spawnHere $ myBrowser ++ " --ProfileManager --new-instance")
+          , ((0,         xK_f), spawnHere $ myBrowser hostname ++ " -P uman")
+          , ((shiftMask, xK_f), spawnHere $ myBrowser hostname ++ " --ProfileManager --new-instance")
           , ((0,         xK_o), spawnHere "opera")
           , ((0,         xK_t), spawnHere "~/local/tor-browser_en-US/start-tor-browser")
         ])
@@ -308,7 +313,7 @@ ks toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
     ])
   ]
   ++ -- this could be in previous [], but this should be grouped with the next group of keyboard definitions:
-  [ ((modm, xK_0), windows (viewOnScreen 1 "18") >> currentTopicAction myTopConf) ] -- raise dance commander on external monintor.
+  [ ((modm, xK_0), windows (viewOnScreen 1 "18") >> (currentTopicAction $ myTopConf hostname)) ] -- raise dance commander on external monintor.
   ++
   [((m .|. modm, k), windows $ f i)
     | (i, k) <- zip [[x] | x <- ['1'..'9']] [xK_1..xK_9] -- lest we forget: [x] -> char vs [char] = string in haskell --> "1" through "9"
@@ -321,10 +326,10 @@ ks toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
                 , (W.shift, controlMask .|. shiftMask)]]
 
 
-modalmode toggleFadeSet conf@(XConfig {XMonad.modMask = modm}) = [ ((m `xor` modm, k), a >> (SM.submap . M.fromList $ modalmode toggleFadeSet conf)) | ((m, k), a) <- ks toggleFadeSet conf ]
+modalmode hostname toggleFadeSet conf@(XConfig {XMonad.modMask = modm}) = [ ((m `xor` modm, k), a >> (SM.submap . M.fromList $ modalmode hostname toggleFadeSet conf)) | ((m, k), a) <- ks hostname toggleFadeSet conf ]
 
-myKeys :: IORef (DS.Set Window) -> XConfig Layout -> M.Map (KeyMask, KeySym) (X ())
-myKeys toggleFadeSet conf@(XConfig {XMonad.modMask = modm}) = M.fromList $ ((modm, xK_n), SM.submap . M.fromList $ modalmode toggleFadeSet conf) : ks toggleFadeSet conf
+myKeys :: String -> IORef (DS.Set Window) -> XConfig Layout -> M.Map (KeyMask, KeySym) (X ())
+myKeys hostname toggleFadeSet conf@(XConfig {XMonad.modMask = modm}) = M.fromList $ ((modm, xK_n), SM.submap . M.fromList $ modalmode hostname toggleFadeSet conf) : ks hostname toggleFadeSet conf
 
 myMouseBindings XConfig {XMonad.modMask = modm} = M.fromList
   [     ((modm, button1), \w -> focus w >> mouseMoveWindow w >> windows W.shiftMaster)
