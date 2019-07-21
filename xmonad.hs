@@ -81,12 +81,12 @@ main = do
       , mouseBindings     = myMouseBindings
       , terminal          = myTerminal
       , workspaces        = myTopics
-      , layoutHook        = myLayouts
+      , layoutHook        = myLayouts hostname
       , logHook           = myLogHook toggleFadeSet
       , focusFollowsMouse = myFocusFollowsMouse
       , borderWidth       = myBorderWidth
       , manageHook        = composeAll
-      [ className =? "Tor Browser" --> doCenterFloat -- for security reasons! window size is fingerprintable!
+      [   className =? "Tor Browser" --> doCenterFloat -- for security reasons! window size is fingerprintable!
         , className =? "lxqt-panel" --> doIgnore
         , isDialog --> unfloat
       ]
@@ -95,8 +95,8 @@ main = do
     }
       where unfloat = ask >>= doF . W.sink
 
-myLayouts = noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts $
-    spacingRaw False (Border 20 20 20 20) True (Border 20 20 20 20) True $
+myLayouts hostname = noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts $
+    spacingRaw False (borders hostname) True (borders hostname) True $
     onWorkspaces ["1"] mediaLayouts $
     onWorkspaces ["2"] imTooSquare $
     onWorkspaces ["3"] weAllFloatDownHere $
@@ -112,26 +112,28 @@ myLayouts = noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts $
     onWorkspaces ["19"] imLayouts
     defLayouts
   where
-     workLayouts        = magicFocus (Mirror wtiled) ||| magicFocus wtiled ||| Mirror tiled ||| tiled
-     defLayouts         = tiled ||| magicFocus (Mirror wtiled) ||| magicFocus wtiled ||| Mirror tiled
-     imLayouts          = reflectHoriz $ withIMs (1/6) rosters $ Tall 0 delta ratio
-     rosters            = [pidginRoster]
-     pidginRoster       = And (ClassName "Pidgin") (Role "buddy_list")
-     telRoster          = And (ClassName "Ktp-contactlist") (Role "MainWindow")
-     weAllFloatDownHere = simplestFloat ||| Accordion
-     imTooSquare        = Grid ||| Mirror zoomRow
-     browsersLayouts    = Mirror Accordion ||| magicFocus wtiled ||| Accordion ||| tiled ||| magicFocus (Mirror wtiled) ||| Mirror tiled -- not that I ever use anything other than mirror accor...
-     mediaLayouts       = magicFocus (Mirror wtiled) ||| magicFocus wtiled
-     -- default tiling algorithm partitions the screen into two panes
-     tiled              = layoutHints $ Tall nmaster delta ratio
-     wtiled             = layoutHints $ Tall nmaster delta (4/5)
-     imtiled            = layoutHints $ Tall 2 delta (4/5)
-     -- The default number of windows in the master pane
-     nmaster            = 1
-     -- Default proportion of screen occupied by master pane
-     ratio              = 2/3
-     -- Percent of screen to increment by when resizing panes
-     delta              = 3/100
+    borders "yggdrassil"  = Border 20 20 20 20
+    borders "daban-urnud" = Border 10 10 10 10
+    workLayouts           = magicFocus (Mirror wtiled) ||| magicFocus wtiled ||| Mirror tiled ||| tiled
+    defLayouts            = tiled ||| magicFocus (Mirror wtiled) ||| magicFocus wtiled ||| Mirror tiled
+    imLayouts             = reflectHoriz $ withIMs (1/6) rosters $ Tall 0 delta ratio
+    rosters               = [pidginRoster]
+    pidginRoster          = And (ClassName "Pidgin") (Role "buddy_list")
+    telRoster             = And (ClassName "Ktp-contactlist") (Role "MainWindow")
+    weAllFloatDownHere    = simplestFloat ||| Accordion
+    imTooSquare           = Grid ||| Mirror zoomRow
+    browsersLayouts       = Mirror Accordion ||| magicFocus wtiled ||| Accordion ||| tiled ||| magicFocus (Mirror wtiled) ||| Mirror tiled -- not that I ever use anything other than mirror accor...
+    mediaLayouts          = magicFocus (Mirror wtiled) ||| magicFocus wtiled
+    -- default tiling algorithm partitions the screen into two panes
+    tiled                 = layoutHints $ Tall nmaster delta ratio
+    wtiled                = layoutHints $ Tall nmaster delta (4/5)
+    imtiled               = layoutHints $ Tall 2 delta (4/5)
+    -- The default number of windows in the master pane
+    nmaster               = 1
+    -- Default proportion of screen occupied by master pane
+    ratio                 = 2/3
+    -- Percent of screen to increment by when resizing panes
+    delta                 = 3/100
 
 myBorderWidth = 0
 
