@@ -249,6 +249,7 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
   , ((modm,                 xK_l),          nextWS)
   , ((modm,                 xK_space),      toggleWS)
   , ((modm .|. shiftMask,   xK_space),      nextScreen) -- toggle screens/monitors
+  , ((modm .|. controlMask, xK_space),      nextScreen) -- toggle screens/monitors
   , ((modm,                 xK_u),          sendMessage Shrink) -- master size
   , ((modm,                 xK_i),          sendMessage Expand)
   , ((modm,                 xK_comma),      sendMessage (IncMasterN 1)) -- nb windows in master
