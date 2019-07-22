@@ -96,7 +96,8 @@ main = do
       where unfloat = ask >>= doF . W.sink
 
 myLayouts hostname = noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts $
-    spacingRaw False (borders hostname) True (borders hostname) True $
+    --spacingRaw False (borders hostname) True (borders hostname) True $
+    spacingRaw False (Border 20 20 20 20) True (Border 20 20 20 20) True $
     onWorkspaces ["1"] mediaLayouts $
     onWorkspaces ["2"] imTooSquare $
     onWorkspaces ["3"] weAllFloatDownHere $
@@ -112,8 +113,9 @@ myLayouts hostname = noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStru
     onWorkspaces ["19"] imLayouts
     defLayouts
   where
-    borders "yggdrassil"  = Border 20 20 20 20
+    borders "yggdrasill"  = Border 20 20 20 20
     borders "daban-urnud" = Border 10 10 10 10
+    borders _             = Border 10 10 10 10
     workLayouts           = magicFocus (Mirror wtiled) ||| magicFocus wtiled ||| Mirror tiled ||| tiled
     defLayouts            = tiled ||| magicFocus (Mirror wtiled) ||| magicFocus wtiled ||| Mirror tiled
     imLayouts             = reflectHoriz $ withIMs (1/6) rosters $ Tall 0 delta ratio
@@ -140,17 +142,20 @@ myBorderWidth = 0
 myTerminal :: String
 myTerminal = "~/conf/misc/scripts/st.sh"
 
-myBrowser "yggdrassil"  = "firefox"
+myBrowser "yggdrasill"  = "firefox"
 myBrowser "daban-urnud" = "firefox-bin"
+myBrowser _             = "firefox"
 
-remoteSessions "yggdrassil" =  spawnRemoteTmuxSession "wg.nostromo.local" "gentoo"
-                            >> spawnRemoteTmuxSession "wg.undefined.local" "gentoo"
-                            >> spawnRemoteTmuxSession "5.39.77.155" "gentoo"
-                            >> spawnRemoteTmuxSession "wg.daban-urnud.local" "gentoo"
+remoteSessions "yggdrasill"  =  spawnRemoteTmuxSession "wg.nostromo.local" "gentoo"
+                             >> spawnRemoteTmuxSession "wg.undefined.local" "gentoo"
+                             >> spawnRemoteTmuxSession "5.39.77.155" "gentoo"
+                             >> spawnRemoteTmuxSession "wg.daban-urnud.local" "gentoo"
 remoteSessions "daban-urnud" =  spawnRemoteTmuxSession "wg.nostromo.local" "gentoo"
                              >> spawnRemoteTmuxSession "wg.undefined.local" "gentoo"
                              >> spawnRemoteTmuxSession "5.39.77.155" "gentoo"
-                             >> spawnRemoteTmuxSession "wg.yggdrassil.local" "gentoo"
+                             >> spawnRemoteTmuxSession "wg.yggdrasill.local" "gentoo"
+remoteSessions _             =  spawnRemoteTmuxSession "wg.nostromo.local" "gentoo"
+
 
 sleepHack sleep = spawn $ "pactl set-sink-volume 0 30%; pactl set-sink-volume 1 20%; pactl set-sink-mute 1 true; pactl set-sink-mute 0 true; " -- reset sound
                   ++ "setxkbmap dvorak; xmodmap ~/conf/misc/xmodmap.laptop.dvorak; " -- reset kbd
@@ -231,7 +236,8 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
     -- terminal stuff:
     ((modm, xK_Return),                     spawnHere $ myTerminal ++ " -e tmux")
   , ((modm .|. shiftMask,   xK_Return),     spawnHere myTerminal)
-  , ((modm .|. shiftMask,   xK_i),          spawnHere "urxvt") -- fallback term
+  --, ((modm .|. shiftMask,   xK_i),          spawnHere "urxvt") -- fallback term
+  , ((modm .|. shiftMask,   xK_i),          spawn $ "echo  " ++ hostname ++ " >> /tmp/xm") -- fallback term
 
   , ((modm,                 xK_r),          spawnHere "rofi -combi-modi window,drun,ssh -theme lb -font \"fira 30\" -show combi") -- themes: gruvbox-dark-soft, lb, Paper, solarized_alternate
     -- workspace/layout stuff:
@@ -268,12 +274,12 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
   , ((modm,                 xK_q),          spawn "xmonad --recompile; xmonad --restart")
   -- , ((modm .|. shiftMask, xK_v),       nextMatchOrDo Backward (className =? "Gvim") (spawnHere "~/local/bin/gvim")) -- this exits, might use this someday??
     -- mediakeys / hotkeys:
-  , ((0, 0x1008ff12), spawn "pactl set-sink-mute 0 toggle; pactl set-sink-mute 1 toggle") -- XF86AudioMute
+  , ((0, 0x1008ff12), spawn "pactl set-sink-mute 0 toggle; pactl set-sink-mute 1 toggle")-- XF86AudioMute
   , ((0, 0x1008ff13), spawn "pactl set-sink-volume 0 +10%; pactl set-sink-volume 1 +10%") -- "XF86AudioRaiseVolume"
   , ((0, 0x1008ff11), spawn "pactl set-sink-volume 0 -10%; pactl set-sink-volume 1 -10%") -- XF86AudioLowerVolume
   , ((0, 0x1008ffb2), spawn "pactl set-source-mute 0 toggle; pactl set-source-mute 1 toggle") -- toggle mic
-  , ((0, 0x1008ff1d), spawn "light -A 10") -- 0x1008ff1d, XF86Calculator brightness up
-  , ((0, 0x1008ff19), spawn "light -U 10") -- 0x1008ff19, XF86Mail brightness: down
+  , ((0, 0x1008ff02), spawn "light -A 10") -- brightness:
+  , ((0, 0x1008ff03), spawn "light -U 10")
     -- launch stuff!
   , ((modm, xK_a), SM.submap . M.fromList $
     [   ((0, xK_c), spawnHere "calibre")
