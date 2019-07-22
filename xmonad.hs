@@ -143,6 +143,15 @@ myTerminal = "~/conf/misc/scripts/st.sh"
 myBrowser "yggdrassil"  = "firefox"
 myBrowser "daban-urnud" = "firefox-bin"
 
+remoteSessions "yggdrassil" =  spawnRemoteTmuxSession "wg.nostromo.local" "gentoo"
+                            >> spawnRemoteTmuxSession "wg.undefined.local" "gentoo"
+                            >> spawnRemoteTmuxSession "5.39.77.155" "gentoo"
+                            >> spawnRemoteTmuxSession "wg.daban-urnud.local" "gentoo"
+remoteSessions "daban-urnud" =  spawnRemoteTmuxSession "wg.nostromo.local" "gentoo"
+                             >> spawnRemoteTmuxSession "wg.undefined.local" "gentoo"
+                             >> spawnRemoteTmuxSession "5.39.77.155" "gentoo"
+                             >> spawnRemoteTmuxSession "wg.yggdrassil.local" "gentoo"
+
 sleepHack sleep = spawn $ "pactl set-sink-volume 0 30%; pactl set-sink-volume 1 20%; pactl set-sink-mute 1 true; pactl set-sink-mute 0 true; " -- reset sound
                   ++ "setxkbmap dvorak; xmodmap ~/conf/misc/xmodmap.laptop.dvorak; " -- reset kbd
                   ++ "systemctl " ++ sleep
@@ -161,13 +170,7 @@ myTopConf hostname = def
     , defaultTopicAction = const $ return ()
     , topicActions = M.fromList
       [   ("1", spawnTmuxSession "gentoo")
-        , ("2",    spawnRemoteTmuxSession "wg.nostromo.local" "gentoo"
-                >> spawnRemoteTmuxSession "wg.undefined.local" "gentoo"
-                >> spawnRemoteTmuxSession "5.39.77.155" "gentoo"
-                -- >> spawnCmd "ssh -t root@5.39.77.155 tmux attach -t install"
-                -- >> spawnRemoteTmuxSession "wg.serenity.local" "gentoo"
-                >> spawnRemoteTmuxSession "wg.daban-urnud.local" "gentoo"
-          )
+        , ("2", remoteSessions hostname)
   -- [((modm .|. shiftMask, k), windows $ W.shift $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
         , ("3", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
         , ("4", spawnHere $ myBrowser hostname ++ " -P uman")
