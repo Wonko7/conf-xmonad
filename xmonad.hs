@@ -261,6 +261,7 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
   , ((modm,                 xK_t),          sinkAll) --  Push windows back into tiling
     -- window stuff:
   , ((modm .|. shiftMask,   xK_c),          kill)
+  , ((modm,                 xK_c),          spawn "~/conf/misc/scripts/dunst.sh close")
   , ((modm,                 xK_j),          windows W.focusDown)
   , ((modm,                 xK_k),          windows W.focusUp)
   , ((modm .|. shiftMask,   xK_j),          windows W.swapDown)
@@ -317,6 +318,10 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
       , ((modm,               xK_e),      decScreenWindowSpacing 10)
       , ((modm,               xK_u),      incScreenWindowSpacing 10)
       , ((modm,               xK_i),      toggleWindowSpacingEnabled >> toggleScreenSpacingEnabled)
+
+      -- dunst:
+      , ((0,                  xK_c),      spawn "~/conf/misc/scripts/dunst.sh close_all")
+      , ((0,                  xK_h),      spawn "~/conf/misc/scripts/dunst.sh history")
 
       -- random:
       , ((0,                  xK_f),      withFocused $ io . modifyIORef toggleFadeSet . toggleFadeOut)
