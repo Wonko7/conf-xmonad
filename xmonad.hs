@@ -98,14 +98,14 @@ main = do
 myLayouts hostname = noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts $
     --spacingRaw False (borders hostname) True (borders hostname) True $
     spacingRaw False (Border 20 20 20 20) True (Border 20 20 20 20) True $
-    onWorkspaces ["1"] mediaLayouts $
+    onWorkspaces ["1"] workLayouts $
     onWorkspaces ["2"] imTooSquare $
-    onWorkspaces ["3"] weAllFloatDownHere $
+    onWorkspaces ["3"] weAllFloatDownHere $ -- not sure if I'm keeping this.
     onWorkspaces ["4", "5"] browsersLayouts $
     onWorkspaces ["6", "7", "8"] workLayouts $
     onWorkspaces ["9"] imLayouts $
     -- second monitor:
-    onWorkspaces ["11"] mediaLayouts $
+    onWorkspaces ["11"] workLayouts $
     onWorkspaces ["12"] imTooSquare $
     onWorkspaces ["13"] weAllFloatDownHere $
     onWorkspaces ["14", "15"] browsersLayouts $
@@ -116,7 +116,7 @@ myLayouts hostname = noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStru
     borders "yggdrasill"  = Border 20 20 20 20
     borders "daban-urnud" = Border 10 10 10 10
     borders _             = Border 10 10 10 10
-    workLayouts           = magicFocus (Mirror wtiled) ||| magicFocus wtiled ||| Mirror tiled ||| tiled
+    workLayouts           = magicFocus (Mirror wtiled) ||| magicFocus wtiled ||| Mirror wtiled ||| wtiled
     defLayouts            = tiled ||| magicFocus (Mirror wtiled) ||| magicFocus wtiled ||| Mirror tiled
     imLayouts             = reflectHoriz $ withIMs (1/6) rosters $ Tall 0 delta ratio
     rosters               = [pidginRoster]
@@ -158,8 +158,9 @@ remoteSessions _             =  spawnRemoteTmuxSession "wg.nostromo.local" "gent
 
 
 sleepHack sleep = spawn $ "pactl set-sink-volume 0 30%; pactl set-sink-volume 1 20%; pactl set-sink-mute 1 true; pactl set-sink-mute 0 true; " -- reset sound
-                  ++ "setxkbmap dvorak; xmodmap ~/conf/misc/xmodmap.laptop.dvorak; " -- reset kbd
-                  ++ "systemctl " ++ sleep
+                  ++ "setxkbmap dvorak; ~/conf/misc/scripts/kbd.sh; " -- reset kbd FIXME should be done on wake up!
+                  ++ "systemctl "
+                  ++ sleep
 
 spawnTmuxSession name               = spawn $ "LOAD_TMUX_SESSION=" ++ name ++ " " ++ myTerminal
 spawnRemoteTmuxSession host session = spawn $ myTerminal ++ " -e ssh -t " ++ host ++ " LOAD_TMUX_SESSION=" ++ session ++ " zsh"
@@ -191,25 +192,6 @@ myTopConf hostname = def
         , ("19", spawnTmuxSession "chat")
       ]
   }
-
--- use this if each time you change desktop / topic / WS you might start stuff:
--- right now doing it manually with modm + y
---
--- addTopicHist = do winset <- gets windowset;
---                   setLastFocusedTopic (W.currentTag winset) (const True)
---
--- toggleTopics = do addTopicHist;
---                   switchNthLastFocused myTopConf 1;
---
--- goToTopic i = do addTopicHist;
---                  switchTopic myTopConf i;
---
--- prevTS = do addTopicHist;
---             prevWS;
---
--- nextTS = do addTopicHist;
---             nextWS;
-
 
 myLogHook :: IORef (DS.Set Window) -> X ()
 myLogHook toggleFadeSet = historyHook >> fadeOutLogHook (fadeIf (fadeCondition toggleFadeSet) 0.8)
@@ -294,6 +276,7 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
         [   ((0, xK_c), spawnTmuxSession "clj")
           , ((0, xK_w), spawnTmuxSession "2m")
           , ((0, xK_g), spawnTmuxSession "gentoo")
+          , ((0, xK_m), spawnTmuxSession "media")
         ])
       , ((0, xK_b), SM.submap . M.fromList $
         [   ((0, xK_q), spawnHere "qutebrowser")
