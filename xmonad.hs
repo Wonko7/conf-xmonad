@@ -97,8 +97,7 @@ main = do
       where unfloat = ask >>= doF . W.sink
 
 myLayouts hostname = noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts $
-    --spacingRaw False (borders hostname) True (borders hostname) True $
-    spacingRaw False (Border 20 20 20 20) True (Border 20 20 20 20) True $
+    spacingRaw False (borders hostname) True (borders hostname) True $
     onWorkspaces ["1"] workLayouts $
     onWorkspaces ["2"] imTooSquare $
     onWorkspaces ["3"] weAllFloatDownHere $ -- not sure if I'm keeping this.
