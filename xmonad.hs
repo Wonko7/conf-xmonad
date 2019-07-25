@@ -77,18 +77,19 @@ main = do
   toggleFadeSet <- newIORef DS.empty
   hostname      <- getHostName
   xmonad $ ewmh desktopConfig
-    {   keys              = myKeys hostname toggleFadeSet
-      , mouseBindings     = myMouseBindings
-      , terminal          = myTerminal
-      , workspaces        = myTopics
-      , layoutHook        = myLayouts hostname
-      , logHook           = myLogHook toggleFadeSet
-      , focusFollowsMouse = myFocusFollowsMouse
-      , borderWidth       = myBorderWidth
-      , manageHook        = composeAll
-      [   className =? "Tor Browser" --> doCenterFloat -- for security reasons! window size is fingerprintable!
-        , className =? "lxqt-panel" --> doIgnore
-        , isDialog --> unfloat
+    { keys              = myKeys hostname toggleFadeSet
+    , mouseBindings     = myMouseBindings
+    , terminal          = myTerminal
+    , workspaces        = myTopics
+    , layoutHook        = myLayouts hostname
+    , modMask           = mod4Mask
+    , logHook           = myLogHook toggleFadeSet
+    , focusFollowsMouse = myFocusFollowsMouse
+    , borderWidth       = myBorderWidth
+    , manageHook        = composeAll
+      [ className =? "Tor Browser" --> doCenterFloat -- for security reasons! window size is fingerprintable!
+      , className =? "lxqt-panel" --> doIgnore
+      , isDialog --> unfloat
       ]
       <+> composeAll
       [ manageDocks ]
@@ -171,25 +172,23 @@ myTopics = [[x] | x <- ['1'..'9']] ++ [['1', x] | x <- ['1'..'9']] -- "1" --> "1
 
 myTopConf :: String -> TopicConfig
 myTopConf hostname = def
-  {   topicDirs = M.fromList [(show i, "~/") | i <- [1..9] ++ [11 .. 19]]
-    , defaultTopic = "1"
-    , defaultTopicAction = const $ return ()
-    , topicActions = M.fromList
-      [   ("1", spawnTmuxSession "gentoo")
-        , ("2", remoteSessions hostname)
-  -- [((modm .|. shiftMask, k), windows $ W.shift $ show i) | (i, k) <- zip [1..9] [xK_1..xK_9]]
-        , ("3", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
-        , ("4", spawnHere $ myBrowser hostname ++ " -P uman")
-        , ("8", spawnTmuxSession "2m")
-        -- , ("9", spawnTmuxSession "chat" >> spawnHere "pidgin") -- TODO time test this
-        , ("9", spawnHere "pidgin")
-        --
-        , ("11", spawnTmuxSession "logs")
-        , ("13", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
-        , ("14", spawnHere $ myBrowser hostname ++ " -P small")
-        , ("17", spawnHere $ myTerminal ++ " -e tmux")
-        , ("18", spawn "VIM_SERVER=DANCE_COMMANDER ~/conf/misc/scripts/nvim.sh")
-        , ("19", spawnTmuxSession "chat")
+  { topicDirs = M.fromList [(show i, "~/") | i <- [1..9] ++ [11 .. 19]]
+  , defaultTopic = "1"
+  , defaultTopicAction = const $ return ()
+  , topicActions = M.fromList
+      [ ("1", spawnTmuxSession "gentoo")
+      , ("2", remoteSessions hostname)
+      , ("3", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
+      , ("4", spawnHere $ myBrowser hostname ++ " -P uman")
+      , ("8", spawnTmuxSession "2m")
+ -- , ("9", spawnTmuxSession "chat" >> spawnHere "pidgin") -- TODO time test this
+      , ("9", spawnHere "pidgin")
+      , ("11", spawnTmuxSession "logs")
+      , ("13", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
+      , ("14", spawnHere $ myBrowser hostname ++ " -P small")
+      , ("17", spawnHere $ myTerminal ++ " -e tmux")
+      , ("18", spawn "VIM_SERVER=DANCE_COMMANDER ~/conf/misc/scripts/nvim.sh")
+      , ("19", spawnTmuxSession "chat")
       ]
   }
 
@@ -218,8 +217,7 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
     -- terminal stuff:
     ((modm, xK_Return),                     spawnHere $ myTerminal ++ " -e tmux")
   , ((modm .|. shiftMask,   xK_Return),     spawnHere myTerminal)
-  --, ((modm .|. shiftMask,   xK_i),          spawnHere "urxvt") -- fallback term
-  , ((modm .|. shiftMask,   xK_i),          spawn $ "echo  " ++ hostname ++ " >> /tmp/xm") -- fallback term
+  , ((modm .|. shiftMask,   xK_i),          spawnHere "urxvt") -- fallback term
 
   , ((modm,                 xK_r),          spawnHere "rofi -combi-modi window,drun,ssh -theme lb -font \"fira 30\" -show combi") -- themes: gruvbox-dark-soft, lb, Paper, solarized_alternate
     -- workspace/layout stuff:
@@ -266,36 +264,36 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
   , ((0, 0x1008ff03), spawn "light -U 10")
     -- launch stuff!
   , ((modm, xK_a), SM.submap . M.fromList $
-    [   ((0, xK_c), spawnHere "calibre")
-      , ((0, xK_d), spawnHere "dolphin")
-      , ((0, xK_g), spawnHere "gimp")
-      , ((0, xK_p), spawnHere "pavucontrol-qt")
-      , ((0, xK_w), spawnHere "wireshark")
-      , ((0, xK_t), spawnHere "transmission-qt")
-      , ((0, xK_s), SM.submap . M.fromList $
-        [   ((0, xK_c), spawnTmuxSession "clj")
-          , ((0, xK_w), spawnTmuxSession "2m")
-          , ((0, xK_g), spawnTmuxSession "gentoo")
-          , ((0, xK_m), spawnTmuxSession "media")
-        ])
-      , ((0, xK_b), SM.submap . M.fromList $
-        [   ((0, xK_q), spawnHere "qutebrowser")
-          , ((0,         xK_c), spawnHere "chromium")
-          , ((0,         xK_g), spawnHere "google-chrome")
-          , ((0,         xK_f), spawnHere $ myBrowser hostname ++ " -P uman")
-          , ((shiftMask, xK_f), spawnHere $ myBrowser hostname ++ " --ProfileManager --new-instance")
-          , ((0,         xK_o), spawnHere "opera")
-          , ((0,         xK_t), spawnHere "~/local/tor-browser_en-US/start-tor-browser")
-        ])
+    [ ((0, xK_c), spawnHere "calibre")
+    , ((0, xK_d), spawnHere "dolphin")
+    , ((0, xK_g), spawnHere "gimp")
+    , ((0, xK_p), spawnHere "pavucontrol-qt")
+    , ((0, xK_w), spawnHere "wireshark")
+    , ((0, xK_t), spawnHere "transmission-qt")
+    , ((0, xK_s), SM.submap . M.fromList $
+      [ ((0, xK_c), spawnTmuxSession "clj")
+      , ((0, xK_w), spawnTmuxSession "2m")
+      , ((0, xK_g), spawnTmuxSession "gentoo")
+      , ((0, xK_m), spawnTmuxSession "media")
+      ])
+    , ((0, xK_b), SM.submap . M.fromList $
+      [ ((0, xK_q), spawnHere "qutebrowser")
+      , ((0,         xK_c), spawnHere "chromium")
+      , ((0,         xK_g), spawnHere "google-chrome")
+      , ((0,         xK_f), spawnHere $ myBrowser hostname ++ " -P uman")
+      , ((shiftMask, xK_f), spawnHere $ myBrowser hostname ++ " --ProfileManager --new-instance")
+      , ((0,         xK_o), spawnHere "opera")
+      , ((0,         xK_t), spawnHere "~/local/tor-browser_en-US/start-tor-browser")
+      ])
     ])
     -- random things:
-  , ((modm, xK_z), SM.submap . M.fromList $
-    [ -- session locking:
-        ((modm,               xK_z),      spawn "xscreensaver-command --lock")
-      , ((modm,               xK_s),      sleepHack "suspend")
-      , ((modm .|. shiftMask, xK_s),      sleepHack "hybrid-sleep")
-      , ((modm,               xK_h),      sleepHack "hybrid-sleep")
-      , ((modm .|. shiftMask, xK_h),      sleepHack "hibernate")
+      , ((modm, xK_z), SM.submap . M.fromList $
+        -- session locking:
+        [ ((modm,               xK_z),      spawn "xscreensaver-command --lock")
+        , ((modm,               xK_s),      sleepHack "suspend")
+        , ((modm .|. shiftMask, xK_s),      sleepHack "hybrid-sleep")
+        , ((modm,               xK_h),      sleepHack "hybrid-sleep")
+        , ((modm .|. shiftMask, xK_h),      sleepHack "hibernate")
 
       -- window borders:
       , ((modm,               xK_e),      decScreenWindowSpacing 10)
@@ -313,17 +311,17 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
     ])
   ]
   ++ -- this could be in previous [], but this should be grouped with the next group of keyboard definitions:
-  [ ((modm, xK_0), windows (viewOnScreen 1 "18") >> (currentTopicAction $ myTopConf hostname)) ] -- raise dance commander on external monintor.
+    [ ((modm, xK_0), windows (viewOnScreen 1 "18") >> (currentTopicAction $ myTopConf hostname)) ] -- raise dance commander on external monintor.
   ++
-  [((m .|. modm, k), windows $ f i)
-    | (i, k) <- zip [[x] | x <- ['1'..'9']] [xK_1..xK_9] -- lest we forget: [x] -> char vs [char] = string in haskell --> "1" through "9"
-    , (f, m) <- [ (viewOnScreen 0, 0)
-                , (W.shift, shiftMask)]]
+    [((m .|. modm, k), windows $ f i)
+      | (i, k) <- zip [[x] | x <- ['1'..'9']] [xK_1..xK_9] -- lest we forget: [x] -> char vs [char] = string in haskell --> "1" through "9"
+      , (f, m) <- [ (viewOnScreen 0, 0)
+                  , (W.shift, shiftMask)]]
   ++
-  [((m .|. modm, k), windows $ f i)
-    | (i, k) <- zip [['1', x] | x <- ['1'..'9']] [xK_1..xK_9] -- lest we forget: [x] -> char vs [char] = string in haskell --> "11" through "19"
-    , (f, m) <- [ (viewOnScreen 1, controlMask)
-                , (W.shift, controlMask .|. shiftMask)]]
+    [((m .|. modm, k), windows $ f i)
+      | (i, k) <- zip [['1', x] | x <- ['1'..'9']] [xK_1..xK_9] -- lest we forget: [x] -> char vs [char] = string in haskell --> "11" through "19"
+      , (f, m) <- [ (viewOnScreen 1, controlMask)
+                  , (W.shift, controlMask .|. shiftMask)]]
 
 
 modalmode hostname toggleFadeSet conf@(XConfig {XMonad.modMask = modm}) = [ ((m `xor` modm, k), a >> (SM.submap . M.fromList $ modalmode hostname toggleFadeSet conf)) | ((m, k), a) <- ks hostname toggleFadeSet conf ]
@@ -332,11 +330,11 @@ myKeys :: String -> IORef (DS.Set Window) -> XConfig Layout -> M.Map (KeyMask, K
 myKeys hostname toggleFadeSet conf@(XConfig {XMonad.modMask = modm}) = M.fromList $ ((modm, xK_n), SM.submap . M.fromList $ modalmode hostname toggleFadeSet conf) : ks hostname toggleFadeSet conf
 
 myMouseBindings XConfig {XMonad.modMask = modm} = M.fromList
-  [     ((modm, button1), \w -> focus w >> mouseMoveWindow w >> windows W.shiftMaster)
-      -- mod-button2, Raise the window to the top of the stack... useless FIXME could find something useful here
-      , ((modm, button2), \w -> focus w >> windows W.shiftMaster)
-      -- mod-button3, Set the window to floating mode and resize by dragging
-      , ((modm, button3), \w -> focus w >> mouseResizeWindow w >> windows W.shiftMaster)
+  [ ((modm, button1), \w -> focus w >> mouseMoveWindow w >> windows W.shiftMaster)
+  -- mod-button2, Raise the window to the top of the stack... useless FIXME could find something useful here
+  , ((modm, button2), \w -> focus w >> windows W.shiftMaster)
+  -- mod-button3, Set the window to floating mode and resize by dragging
+  , ((modm, button3), \w -> focus w >> mouseResizeWindow w >> windows W.shiftMaster)
   ]
 
 myFocusFollowsMouse :: Bool
