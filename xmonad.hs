@@ -249,10 +249,7 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
   , ((modm .|. controlMask, xK_k),          windowGo U False)
   , ((modm .|. controlMask, xK_h),          windowGo L False)
   , ((modm .|. controlMask, xK_l),          windowGo R False)
-    -- pause and resume dunst notifs
-  , ((modm,                 xK_quoteright), spawn "killall -SIGUSR1 dunst")
-  , ((modm .|. shiftMask,   xK_quoteright), spawn "killall -SIGUSR2 dunst")
-  , ((modm,                 xK_q),          spawn "xmonad --recompile; xmonad --restart")
+  , ((modm,                 xK_q),          spawn "xmonad --recompile; xmonad --restart") -- FIXME: do something else?
   -- , ((modm .|. shiftMask, xK_v),       nextMatchOrDo Backward (className =? "Gvim") (spawnHere "~/local/bin/gvim")) -- this exits, might use this someday??
     -- mediakeys / hotkeys:
   , ((0, 0x1008ff12), spawn "pactl set-sink-mute 0 toggle; pactl set-sink-mute 1 toggle")-- XF86AudioMute
@@ -276,51 +273,55 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
       , ((0, xK_m), spawnTmuxSession "media")
       ])
     , ((0, xK_b), SM.submap . M.fromList $
-      [ ((0, xK_q), spawnHere "qutebrowser")
+      [ ((0, xK_q),         spawnHere "qutebrowser")
       , ((0,         xK_c), spawnHere "chromium")
       , ((0,         xK_g), spawnHere "google-chrome")
       , ((0,         xK_f), spawnHere $ myBrowser hostname ++ " -P uman")
       , ((shiftMask, xK_f), spawnHere $ myBrowser hostname ++ " --ProfileManager --new-instance")
       , ((0,         xK_o), spawnHere "opera")
-      , ((0,         xK_t), spawnHere "~/local/tor-browser_en-US/start-tor-browser")
+      , ((0,         xK_t), spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
       ])
     ])
-    -- random things:
-      , ((modm, xK_z), SM.submap . M.fromList $
-        -- session locking:
-        [ ((modm,               xK_z),      spawn "xscreensaver-command --lock")
-        , ((modm,               xK_s),      sleepHack "suspend")
-        , ((modm .|. shiftMask, xK_s),      sleepHack "hybrid-sleep")
-        , ((modm,               xK_h),      sleepHack "hybrid-sleep")
-        , ((modm .|. shiftMask, xK_h),      sleepHack "hibernate")
+  -- random things:
+  , ((modm, xK_z), SM.submap . M.fromList $
+    -- session locking:
+    [ ((modm,               xK_z),          spawn "xscreensaver-command --lock || (xscreensaver -no-splash&) && sleep 0.5 && xscreensaver-command -lock")
+    , ((modm,               xK_s),          sleepHack "suspend")
+    , ((modm .|. shiftMask, xK_s),          sleepHack "hybrid-sleep")
+    , ((modm,               xK_h),          sleepHack "hybrid-sleep")
+    , ((modm .|. shiftMask, xK_h),          sleepHack "hibernate")
 
-      -- window borders:
-      , ((modm,               xK_e),      decScreenWindowSpacing 10)
-      , ((modm,               xK_u),      incScreenWindowSpacing 10)
-      , ((modm,               xK_i),      toggleWindowSpacingEnabled >> toggleScreenSpacingEnabled)
+    -- window borders:
+    , ((modm,               xK_e),          decScreenWindowSpacing 10)
+    , ((modm,               xK_u),          incScreenWindowSpacing 10)
+    , ((modm,               xK_i),          toggleWindowSpacingEnabled >> toggleScreenSpacingEnabled)
 
-      -- dunst:
-      , ((0,                  xK_c),      spawn "~/conf/misc/scripts/dunst.sh close_all")
-      , ((0,                  xK_h),      spawn "~/conf/misc/scripts/dunst.sh history")
+    -- dunst:
+    , ((0,                  xK_c),          spawn "~/conf/misc/scripts/dunst.sh close_all")
+    , ((0,                  xK_h),          spawn "~/conf/misc/scripts/dunst.sh history")
+    -- pause and resume dunst notifs
+    , ((0,                  xK_quoteright), spawn "killall -SIGUSR1 dunst")
+    , ((shiftMask,          xK_quoteright), spawn "killall -SIGUSR2 dunst")
 
-      -- random:
-      , ((0,                  xK_f),      withFocused $ io . modifyIORef toggleFadeSet . toggleFadeOut)
-      , ((0,                  xK_s),      shiftNextScreen >> nextScreen) -- TODO time test this
-      --, ((modm ,     xK_m),      updatePointer (0.5 0.5) (0, 0)) -- nope, never ever use this, does not work as is outside of loghook.
+    -- misc:
+    , ((0,                  xK_q),          spawn "xmonad --recompile; xmonad --restart")
+    , ((0,                  xK_k),          spawn "~/conf/misc/scripts/kbd.sh")
+    , ((0,                  xK_f),          withFocused $ io . modifyIORef toggleFadeSet . toggleFadeOut)
+    , ((0,                  xK_s),          shiftNextScreen >> nextScreen) -- TODO time proof this
     ])
   ]
   ++ -- this could be in previous [], but this should be grouped with the next group of keyboard definitions:
-    [ ((modm, xK_0), windows (viewOnScreen 1 "18") >> (currentTopicAction $ myTopConf hostname)) ] -- raise dance commander on external monintor.
+    [ ((modm, xK_0), windows (viewOnScreen 1 "18") >> currentTopicAction (myTopConf hostname)) ] -- raise dance commander on external monintor.
   ++
     [((m .|. modm, k), windows $ f i)
       | (i, k) <- zip [[x] | x <- ['1'..'9']] [xK_1..xK_9] -- lest we forget: [x] -> char vs [char] = string in haskell --> "1" through "9"
       , (f, m) <- [ (viewOnScreen 0, 0)
-                  , (W.shift, shiftMask)]]
+      , (W.shift, shiftMask)]]
   ++
     [((m .|. modm, k), windows $ f i)
       | (i, k) <- zip [['1', x] | x <- ['1'..'9']] [xK_1..xK_9] -- lest we forget: [x] -> char vs [char] = string in haskell --> "11" through "19"
       , (f, m) <- [ (viewOnScreen 1, controlMask)
-                  , (W.shift, controlMask .|. shiftMask)]]
+      , (W.shift, controlMask .|. shiftMask)]]
 
 
 modalmode hostname toggleFadeSet conf@(XConfig {XMonad.modMask = modm}) = [ ((m `xor` modm, k), a >> (SM.submap . M.fromList $ modalmode hostname toggleFadeSet conf)) | ((m, k), a) <- ks hostname toggleFadeSet conf ]
