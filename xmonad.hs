@@ -143,7 +143,10 @@ myBorderWidth = 0
 myTerminal :: String
 myTerminal = "~/conf/misc/scripts/st.sh"
 
-myBrowser "yggdrasill"  = "firefox"
+gajim "yggdrasill"  = spawn "GDK_SCALE=3 GDK_DPI_SCALE=0.4 gajim"
+gajim "daban-urnud"  = spawn "GDK_SCALE=2 GDK_DPI_SCALE=0.5 gajim"
+gajim _             = spawn "gajim"
+
 myBrowser "daban-urnud" = "firefox-bin"
 myBrowser _             = "firefox"
 
@@ -183,7 +186,7 @@ myTopConf hostname = def
       , ("8", spawnTmuxSession "2m")
  -- , ("9", spawnTmuxSession "chat" >> spawnHere "pidgin") -- TODO time test this
       --, ("9", spawnHere "pidgin")
-      , ("9", spawn "GDK_SCALE=3 GDK_DPI_SCALE=0.4 gajim")
+      , ("9", gajim hostname)
       , ("11", spawnTmuxSession "logs")
       , ("12", remoteSessions hostname)
       , ("13", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
