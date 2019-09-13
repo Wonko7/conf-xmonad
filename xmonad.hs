@@ -119,9 +119,10 @@ myLayouts hostname = noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStru
     workLayouts           = magicFocus (Mirror wtiled) ||| magicFocus wtiled ||| Mirror wtiled ||| wtiled
     defLayouts            = tiled ||| magicFocus (Mirror wtiled) ||| magicFocus wtiled ||| Mirror tiled
     imLayouts             = reflectHoriz $ withIMs (1/6) rosters $ Tall 0 delta ratio
-    rosters               = [pidginRoster]
+    rosters               = [pidginRoster, gajimRoster]
     pidginRoster          = And (ClassName "Pidgin") (Role "buddy_list")
     telRoster             = And (ClassName "Ktp-contactlist") (Role "MainWindow")
+    gajimRoster           = And (ClassName "Gajim") (Role "roster")
     weAllFloatDownHere    = simplestFloat ||| Accordion
     imTooSquare           = Grid ||| Mirror zoomRow
     browsersLayouts       = Mirror Accordion ||| magicFocus wtiled ||| Accordion ||| tiled ||| magicFocus (Mirror wtiled) ||| Mirror tiled -- not that I ever use anything other than mirror accor...
@@ -181,8 +182,10 @@ myTopConf hostname = def
       , ("4", spawnHere $ myBrowser hostname ++ " -P uman")
       , ("8", spawnTmuxSession "2m")
  -- , ("9", spawnTmuxSession "chat" >> spawnHere "pidgin") -- TODO time test this
-      , ("9", spawnHere "pidgin")
+      --, ("9", spawnHere "pidgin")
+      , ("9", spawn "GDK_SCALE=3 GDK_DPI_SCALE=0.4 gajim")
       , ("11", spawnTmuxSession "logs")
+      , ("12", remoteSessions hostname)
       , ("13", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
       , ("14", spawnHere $ myBrowser hostname ++ " -P small")
       , ("17", spawnHere $ myTerminal ++ " -e tmux")
