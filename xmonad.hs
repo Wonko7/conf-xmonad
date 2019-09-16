@@ -142,29 +142,27 @@ myBorderWidth = 0
 
 myTerminal :: String
 myTerminal = "~/conf/misc/scripts/st.sh"
+myChat = "gajim"
 
-myChat "yggdrasill"  = spawn "GDK_SCALE=3 GDK_DPI_SCALE=0.4 gajim"
-myChat "daban-urnud" = spawn "GDK_SCALE=2 GDK_DPI_SCALE=0.5 gajim"
-myChat _             = spawn "gajim"
+-- myChat "yggdrasill"  = "GDK_SCALE=3 GDK_DPI_SCALE=0.4 gajim"
+-- myChat "daban-urnud" = "GDK_SCALE=2 GDK_DPI_SCALE=0.5 gajim"
 
 myBrowser "daban-urnud" = "firefox-bin"
 myBrowser _             = "firefox"
 
-remoteSessions "yggdrasill"  =  spawnRemoteTmuxSession "wg.nostromo.local" "gentoo"
-                             >> spawnRemoteTmuxSession "wg.undefined.local" "gentoo"
-                             >> spawnRemoteTmuxSession "5.39.77.155" "gentoo"
-                             >> spawnRemoteTmuxSession "wg.daban-urnud.local" "gentoo"
-remoteSessions "daban-urnud" =  spawnRemoteTmuxSession "wg.nostromo.local" "gentoo"
-                             >> spawnRemoteTmuxSession "wg.undefined.local" "gentoo"
-                             >> spawnRemoteTmuxSession "5.39.77.155" "gentoo"
-                             >> spawnRemoteTmuxSession "wg.yggdrasill.local" "gentoo"
-remoteSessions _             =  spawnRemoteTmuxSession "wg.nostromo.local" "gentoo"
+spawnRemoteSessions "yggdrasill"  =  spawnRemoteTmuxSession "wg.nostromo.local" "gentoo"
+                                  >> spawnRemoteTmuxSession "wg.undefined.local" "gentoo"
+                                  >> spawnRemoteTmuxSession "5.39.77.155" "gentoo"
+                                  >> spawnRemoteTmuxSession "wg.daban-urnud.local" "remote"
+spawnRemoteSessions "daban-urnud" =  spawnRemoteTmuxSession "wg.nostromo.local" "gentoo"
+                                  >> spawnRemoteTmuxSession "wg.undefined.local" "gentoo"
+                                  >> spawnRemoteTmuxSession "5.39.77.155" "gentoo"
+                                  >> spawnRemoteTmuxSession "wg.yggdrasill.local" "remote"
+spawnRemoteSessions _             =  spawnRemoteTmuxSession "wg.nostromo.local" "gentoo"
 
 
-sleepHack sleep = spawn $ "pactl set-sink-volume 0 30%; pactl set-sink-volume 1 20%; pactl set-sink-mute 1 true; pactl set-sink-mute 0 true; " -- reset sound
-                  ++ "setxkbmap dvorak; ~/conf/misc/scripts/kbd.sh; " -- reset kbd FIXME should be done on wake up!
-                  ++ "systemctl "
-                  ++ sleep
+xReset = "pactl set-sink-volume 0 30%; pactl set-sink-volume 1 20%; pactl set-sink-mute 1 true; pactl set-sink-mute 0 true; " -- reset sound
+      ++ "setxkbmap dvorak; ~/conf/misc/scripts/kbd.sh; " -- reset kbd FIXME should be done on wake up!
 
 spawnTmuxSession name               = spawn $ "LOAD_TMUX_SESSION=" ++ name ++ " " ++ myTerminal
 spawnRemoteTmuxSession host session = spawn $ myTerminal ++ " -e ssh -t " ++ host ++ " LOAD_TMUX_SESSION=" ++ session ++ " zsh"
@@ -180,22 +178,20 @@ myTopConf hostname = def
   , defaultTopicAction = const $ return ()
   , topicActions = M.fromList
       [ ("1", spawnTmuxSession "gentoo")
-      , ("2", remoteSessions hostname)
+      , ("2", spawnRemoteSessions hostname)
       , ("3", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
       , ("4", spawnHere $ myBrowser hostname ++ " -P uman")
       , ("8", spawnTmuxSession "2m")
- -- , ("9", spawnTmuxSession "chat" >> spawnHere "pidgin") -- TODO time test this
-      --, ("9", spawnHere "pidgin")
-      , ("9", gajim hostname)
-      , ("11", spawnTmuxSession "logs")
-      , ("12", remoteSessions hostname)
-      , ("13", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
-      , ("14", spawnHere $ myBrowser hostname ++ " -P small")
-      , ("17", spawnHere $ myTerminal ++ " -e tmux")
-      , ("18", spawn "VIM_SERVER=DANCE_COMMANDER ~/conf/misc/scripts/nvim.sh")
-      , ("19", spawnTmuxSession "chat")
-      ]
-  }
+      , ("9", spawnHere myChat)
+    , ("11", spawnTmuxSession "logs")
+    , ("12", spawnRemoteSessions hostname)
+    , ("13", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
+    , ("14", spawnHere $ myBrowser hostname ++ " -P small")
+    , ("17", spawnHere $ myTerminal ++ " -e tmux")
+    , ("18", spawn "VIM_SERVER=DANCE_COMMANDER ~/conf/misc/scripts/nvim.sh")
+    , ("19", spawnTmuxSession "chat")
+    ]
+}
 
 myLogHook :: IORef (DS.Set Window) -> X ()
 myLogHook toggleFadeSet = historyHook >> fadeOutLogHook (fadeIf (fadeCondition toggleFadeSet) 0.8)
@@ -208,12 +204,6 @@ fadeCondition floats =
 toggleFadeOut :: Window -> DS.Set Window -> DS.Set Window
 toggleFadeOut w s | w `DS.member` s = DS.delete w s
                   | otherwise = DS.insert w s
-
--- >  -- in keybindings: there are much more W.swap* W.focus* and W.shift* functions to use.
--- >  ,((modm, xK_f), onAllWS W.focusDown)
--- >  ,((modm, xK_d), onAllWS W.focusUp)
--- >  ,((modm, xK_g), onAllWS W.swapMaster)
--- doNotFadeOutWindows = title ~? "Call with " <||> className =? "xine" <||> className =? "MPlayer" ===> FIXME title could be intersting!
 
 ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
     -- FIXME: nothing on D! xk_d, B neither.
@@ -264,7 +254,8 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
   , ((0, 0x1008ffb2), spawn "pactl set-source-mute 0 toggle; pactl set-source-mute 1 toggle") -- toggle mic
   , ((0, 0x1008ff02), spawn "light -A 10") -- brightness:
   , ((0, 0x1008ff03), spawn "light -U 10")
-    -- launch stuff!
+
+  -- launch stuff!
   , ((modm, xK_a), SM.submap . M.fromList $
     [ ((0, xK_c), spawnHere "calibre")
     , ((0, xK_d), spawnHere "dolphin")
@@ -272,63 +263,76 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
     , ((0, xK_p), spawnHere "pavucontrol-qt")
     , ((0, xK_w), spawnHere "wireshark")
     , ((0, xK_t), spawnHere "transmission-qt")
-    , ((0, xK_s), SM.submap . M.fromList $
-      [ ((0, xK_c), spawnTmuxSession "clj")
+    -- tmux sessions:
+    , ((modm, xK_s), SM.submap . M.fromList $
+      [ ((0, xK_c), spawnTmuxSession "chat")
       , ((0, xK_w), spawnTmuxSession "2m")
       , ((0, xK_g), spawnTmuxSession "gentoo")
       , ((0, xK_m), spawnTmuxSession "media")
       ])
-    , ((0, xK_b), SM.submap . M.fromList $
+    -- browsers:
+    , ((modm, xK_b), SM.submap . M.fromList $
       [ ((0, xK_q),         spawnHere "qutebrowser")
       , ((0,         xK_c), spawnHere "chromium")
-      , ((0,         xK_g), spawnHere "google-chrome")
+      , ((0,         xK_g), spawnHere "google-chrome-stable")
       , ((0,         xK_f), spawnHere $ myBrowser hostname ++ " -P uman")
       , ((shiftMask, xK_f), spawnHere $ myBrowser hostname ++ " --ProfileManager --new-instance")
       , ((0,         xK_o), spawnHere "opera")
       , ((0,         xK_t), spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
       ])
+    -- chats:
+    , ((modm, xK_c), SM.submap . M.fromList $
+      [ ((0, xK_c), spawnTmuxSession "chat")
+      , ((0, xK_p), spawnHere "pidgin")
+      , ((0, xK_g), spawnHere "gajim")
+      ])
+    -- terms:
+    , ((modm, xK_t), SM.submap . M.fromList $
+      [ ((0, xK_t), spawnHere "terminology")
+      , ((0, xK_x), spawnHere "xterm")
+      , ((0, xK_u), spawnHere "urxvt")
+      , ((0, xK_s), spawnHere "st")
+      ])
     ])
   -- random things:
   , ((modm, xK_z), SM.submap . M.fromList $
     -- session locking:
-    [ ((modm,               xK_z),          spawn "xscreensaver-command --lock || (xscreensaver -no-splash&) && sleep 0.5 && xscreensaver-command -lock")
-    , ((modm,               xK_s),          sleepHack "suspend")
-    , ((modm .|. shiftMask, xK_s),          sleepHack "hybrid-sleep")
-    , ((modm,               xK_h),          sleepHack "hybrid-sleep")
-    , ((modm .|. shiftMask, xK_h),          sleepHack "hibernate")
+    [ ((modm,      xK_z),          spawn "xscreensaver-command --lock || (xscreensaver -no-splash&) && sleep 0.5 && xscreensaver-command -lock")
+    , ((0,         xK_s),          spawn $ xReset ++ "systemctl suspend")
+    , ((shiftMask, xK_s),          spawn $ xReset ++ "systemctl hybrid-sleep")
+    , ((shiftMask, xK_h),          spawn $ xReset ++ "systemctl hibernate")
 
     -- window borders:
-    , ((modm,               xK_e),          decScreenWindowSpacing 10)
-    , ((modm,               xK_u),          incScreenWindowSpacing 10)
-    , ((modm,               xK_i),          toggleWindowSpacingEnabled >> toggleScreenSpacingEnabled)
+    , ((0,         xK_e),          decScreenWindowSpacing 10)
+    , ((0,         xK_u),          incScreenWindowSpacing 10)
+    , ((0,         xK_i),          toggleWindowSpacingEnabled >> toggleScreenSpacingEnabled)
 
     -- dunst:
-    , ((0,                  xK_c),          spawn "~/conf/misc/scripts/dunst.sh close_all")
-    , ((0,                  xK_h),          spawn "~/conf/misc/scripts/dunst.sh history")
+    , ((0,         xK_c),          spawn "~/conf/misc/scripts/dunst.sh close_all")
+    , ((0,         xK_h),          spawn "~/conf/misc/scripts/dunst.sh history")
     -- pause and resume dunst notifs
-    , ((0,                  xK_quoteright), spawn "killall -SIGUSR1 dunst")
-    , ((shiftMask,          xK_quoteright), spawn "killall -SIGUSR2 dunst")
+    , ((0,         xK_quoteright), spawn "killall -SIGUSR1 dunst")
+    , ((shiftMask, xK_quoteright), spawn "killall -SIGUSR2 dunst")
 
     -- misc:
-    , ((0,                  xK_q),          spawn "xmonad --recompile; xmonad --restart")
-    , ((0,                  xK_k),          spawn "~/conf/misc/scripts/kbd.sh")
-    , ((0,                  xK_f),          withFocused $ io . modifyIORef toggleFadeSet . toggleFadeOut)
-    , ((0,                  xK_s),          shiftNextScreen >> nextScreen) -- TODO time proof this
+    , ((0,         xK_q),          spawn "xmonad --recompile; xmonad --restart")
+    , ((0,         xK_k),          spawn "~/conf/misc/scripts/kbd.sh")
+    , ((0,         xK_f),          withFocused $ io . modifyIORef toggleFadeSet . toggleFadeOut)
+    --, ((0,         xK_s),          shiftNextScreen >> nextScreen) -- TODO time proof this
     ])
   ]
   ++ -- this could be in previous [], but this should be grouped with the next group of keyboard definitions:
-    [ ((modm, xK_0), windows (viewOnScreen 1 "18") >> currentTopicAction (myTopConf hostname)) ] -- raise dance commander on external monintor.
+  [ ((modm, xK_0), windows (viewOnScreen 1 "18") >> currentTopicAction (myTopConf hostname)) ] -- raise dance commander on external monintor.
   ++
-    [((m .|. modm, k), windows $ f i)
-      | (i, k) <- zip [[x] | x <- ['1'..'9']] [xK_1..xK_9] -- lest we forget: [x] -> char vs [char] = string in haskell --> "1" through "9"
-      , (f, m) <- [ (viewOnScreen 0, 0)
-      , (W.shift, shiftMask)]]
+  [((m .|. modm, k), windows $ f i)
+    | (i, k) <- zip [[x] | x <- ['1'..'9']] [xK_1..xK_9] -- lest we forget: [x] -> char vs [char] = string in haskell --> "1" through "9"
+    , (f, m) <- [ (viewOnScreen 0, 0)
+    , (W.shift, shiftMask)]]
   ++
-    [((m .|. modm, k), windows $ f i)
-      | (i, k) <- zip [['1', x] | x <- ['1'..'9']] [xK_1..xK_9] -- lest we forget: [x] -> char vs [char] = string in haskell --> "11" through "19"
-      , (f, m) <- [ (viewOnScreen 1, controlMask)
-      , (W.shift, controlMask .|. shiftMask)]]
-
+  [((m .|. modm, k), windows $ f i)
+    | (i, k) <- zip [['1', x] | x <- ['1'..'9']] [xK_1..xK_9] -- lest we forget: [x] -> char vs [char] = string in haskell --> "11" through "19"
+    , (f, m) <- [ (viewOnScreen 1, controlMask)
+    , (W.shift, controlMask .|. shiftMask)]]
 
 modalmode hostname toggleFadeSet conf@(XConfig {XMonad.modMask = modm}) = [ ((m `xor` modm, k), a >> (SM.submap . M.fromList $ modalmode hostname toggleFadeSet conf)) | ((m, k), a) <- ks hostname toggleFadeSet conf ]
 
