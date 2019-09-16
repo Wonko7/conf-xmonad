@@ -168,20 +168,26 @@ spawnTmuxSession name               = spawn $ "LOAD_TMUX_SESSION=" ++ name ++ " 
 spawnRemoteTmuxSession host session = spawn $ myTerminal ++ " -e ssh -t " ++ host ++ " LOAD_TMUX_SESSION=" ++ session ++ " zsh"
 spawnCmd cmd                        = spawn $ myTerminal ++ " -e " ++ cmd
 
+defaultSession "daban-urnud" "1" = "media"
+defaultSession "daban-urnud" "8" = "gentoo"
+defaultSession "yggdrasill"  "1" = "gentoo"
+defaultSession "yggdrasill"  "8" = "2m"
+defaultSession _             "1" = "gentoo"
+defaultSession _             "8" = "reader"
+
 myTopics :: [Topic]
 myTopics = [[x] | x <- ['1'..'9']] ++ [['1', x] | x <- ['1'..'9']] -- "1" --> "19", skipping 10 & 0
-
 myTopConf :: String -> TopicConfig
 myTopConf hostname = def
   { topicDirs = M.fromList [(show i, "~/") | i <- [1..9] ++ [11 .. 19]]
   , defaultTopic = "1"
   , defaultTopicAction = const $ return ()
   , topicActions = M.fromList
-      [ ("1", spawnTmuxSession "gentoo")
+      [ ("1", spawnTmuxSession $ defaultSession hostname "1")
       , ("2", spawnRemoteSessions hostname)
       , ("3", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
       , ("4", spawnHere $ myBrowser hostname ++ " -P uman")
-      , ("8", spawnTmuxSession "2m")
+      , ("8", spawnTmuxSession $ defaultSession hostname "8")
       , ("9", spawnHere myChat)
     , ("11", spawnTmuxSession "logs")
     , ("12", spawnRemoteSessions hostname)
@@ -207,12 +213,12 @@ toggleFadeOut w s | w `DS.member` s = DS.delete w s
 
 ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
     -- FIXME: nothing on D! xk_d, B neither.
-    -- b, d, g, v, 0, s, v, backspace   shift v, shift 0, shift t, shift z, shift period for something fun.
+    -- b, d, g, v, V, 0, s, v, i, A, q backspace   shift v, shift 0, shift t, shift z, shift period for something fun.
     --
     -- terminal stuff:
     ((modm, xK_Return),                     spawnHere $ myTerminal ++ " -e tmux")
   , ((modm .|. shiftMask,   xK_Return),     spawnHere myTerminal)
-  , ((modm .|. shiftMask,   xK_i),          spawnHere "urxvt") -- fallback term
+  , ((modm .|. shiftMask,   xK_i),          spawnHere "urxvt") -- fallback term: FIXME use for something else.
 
   , ((modm,                 xK_r),          spawnHere "rofi -combi-modi window,drun,ssh -theme lb -font \"fira 30\" -show combi") -- themes: gruvbox-dark-soft, lb, Paper, solarized_alternate
     -- workspace/layout stuff:
