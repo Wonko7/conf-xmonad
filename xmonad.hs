@@ -143,9 +143,9 @@ myBorderWidth = 0
 myTerminal :: String
 myTerminal = "~/conf/misc/scripts/st.sh"
 
-gajim "yggdrasill"  = spawn "GDK_SCALE=3 GDK_DPI_SCALE=0.4 gajim"
-gajim "daban-urnud"  = spawn "GDK_SCALE=2 GDK_DPI_SCALE=0.5 gajim"
-gajim _             = spawn "gajim"
+myChat "yggdrasill"  = spawn "GDK_SCALE=3 GDK_DPI_SCALE=0.4 gajim"
+myChat "daban-urnud" = spawn "GDK_SCALE=2 GDK_DPI_SCALE=0.5 gajim"
+myChat _             = spawn "gajim"
 
 myBrowser "daban-urnud" = "firefox-bin"
 myBrowser _             = "firefox"
