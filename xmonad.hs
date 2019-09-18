@@ -189,15 +189,15 @@ myTopConf hostname = def
       , ("4", spawnHere $ myBrowser hostname ++ " -P uman")
       , ("8", spawnTmuxSession $ defaultSession hostname "8")
       , ("9", spawnHere myChat)
-    , ("11", spawnTmuxSession "logs")
-    , ("12", spawnRemoteSessions hostname)
-    , ("13", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
-    , ("14", spawnHere $ myBrowser hostname ++ " -P small")
-    , ("17", spawnHere $ myTerminal ++ " -e tmux")
-    , ("18", spawn "VIM_SERVER=DANCE_COMMANDER ~/conf/misc/scripts/nvim.sh")
-    , ("19", spawnTmuxSession "chat")
-    ]
-}
+      , ("11", spawnTmuxSession "logs")
+      , ("12", spawnRemoteSessions hostname)
+      , ("13", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
+      , ("14", spawnHere $ myBrowser hostname ++ " -P small")
+      , ("17", spawnHere $ myTerminal ++ " -e tmux")
+      , ("18", spawn "VIM_SERVER=DANCE_COMMANDER ~/conf/misc/scripts/nvim.sh")
+      , ("19", spawnTmuxSession "chat")
+      ]
+  }
 
 myLogHook :: IORef (DS.Set Window) -> X ()
 myLogHook toggleFadeSet = historyHook >> fadeOutLogHook (fadeIf (fadeCondition toggleFadeSet) 0.8)
@@ -322,7 +322,7 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
 
     -- misc:
     , ((0,         xK_q),          spawn "xmonad --recompile; xmonad --restart")
-    , ((0,         xK_k),          spawn "~/conf/misc/scripts/kbd.sh")
+    , ((0,         xK_k),          spawn xReset)
     , ((0,         xK_f),          withFocused $ io . modifyIORef toggleFadeSet . toggleFadeOut)
     --, ((0,         xK_s),          shiftNextScreen >> nextScreen) -- TODO time proof this
     ])
