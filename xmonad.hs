@@ -114,6 +114,7 @@ myLayouts hostname = noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStru
     defLayouts
   where
     borders "yggdrasill"  = Border 20 20 20 20
+    -- borders "yggdrasill"  = Border 20 20 20 20 FIXME make 5 on 2nd mon
     borders "daban-urnud" = Border 10 10 10 10
     borders _             = Border 10 10 10 10
     workLayouts           = magicFocus (Mirror wtiled) ||| magicFocus wtiled ||| Mirror wtiled ||| wtiled
@@ -193,7 +194,9 @@ myTopConf hostname = def
       , ("12", spawnRemoteSessions hostname)
       , ("13", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
       , ("14", spawnHere $ myBrowser hostname ++ " -P small")
-      , ("17", spawnHere $ myTerminal ++ " -e tmux")
+      , ("17", spawnTmuxSession "2mp")
+      --, ("17", spawnHere $ myTerminal ++ " -e tmux")
+
       , ("18", spawn "VIM_SERVER=DANCE_COMMANDER ~/conf/misc/scripts/nvim.sh")
       , ("19", spawnTmuxSession "chat")
       ]
