@@ -96,8 +96,8 @@ main = do
     }
       where unfloat = ask >>= doF . W.sink
 
-myLayouts hostname = noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts $
-    spacingRaw False (borders hostname) True (borders hostname) True $
+myLayouts hostname =
+    init (borders hostname "screen1") $
     onWorkspaces ["1"] workLayouts $
     onWorkspaces ["2"] imTooSquare $
     onWorkspaces ["3"] weAllFloatDownHere $ -- not sure if I'm keeping this.
@@ -105,6 +105,7 @@ myLayouts hostname = noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStru
     onWorkspaces ["6", "7", "8"] workLayouts $
     onWorkspaces ["9"] imLayouts $
     -- second monitor:
+    -- init (borders hostname "screen2") $
     onWorkspaces ["11"] workLayouts $
     onWorkspaces ["12"] imTooSquare $
     onWorkspaces ["13"] weAllFloatDownHere $
@@ -113,31 +114,34 @@ myLayouts hostname = noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStru
     onWorkspaces ["19"] imLayouts
     defLayouts
   where
-    borders "yggdrasill"  = Border 20 20 20 20
+    -- FIXME try XMonad.Layout.BinarySpacePartition
+    init bd arg                    = noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts $ spacingRaw False (bd) True (bd) True $ arg
+    borders "yggdrasill" "screen1" = Border 20 20 20 20
+    borders "yggdrasill" "screen2" = Border 5 5 5 5
     -- borders "yggdrasill"  = Border 20 20 20 20 FIXME make 5 on 2nd mon
-    borders "daban-urnud" = Border 10 10 10 10
-    borders _             = Border 10 10 10 10
-    workLayouts           = magicFocus (Mirror wtiled) ||| magicFocus wtiled ||| Mirror wtiled ||| wtiled
-    defLayouts            = tiled ||| magicFocus (Mirror wtiled) ||| magicFocus wtiled ||| Mirror tiled
-    imLayouts             = reflectHoriz $ withIMs (1/6) rosters $ Tall 0 delta ratio
-    rosters               = [pidginRoster, gajimRoster]
-    pidginRoster          = And (ClassName "Pidgin") (Role "buddy_list")
-    telRoster             = And (ClassName "Ktp-contactlist") (Role "MainWindow")
-    gajimRoster           = And (ClassName "Gajim") (Role "roster")
-    weAllFloatDownHere    = simplestFloat ||| Accordion
-    imTooSquare           = Grid ||| Mirror zoomRow
-    browsersLayouts       = Mirror Accordion ||| magicFocus wtiled ||| Accordion ||| tiled ||| magicFocus (Mirror wtiled) ||| Mirror tiled -- not that I ever use anything other than mirror accor...
-    mediaLayouts          = magicFocus (Mirror wtiled) ||| magicFocus wtiled
+    borders "daban-urnud" _        = Border 10 10 10 10
+    borders _  _                   = Border 10 10 10 10
+    workLayouts                    = magicFocus (Mirror wtiled) ||| magicFocus wtiled ||| Mirror wtiled ||| wtiled
+    defLayouts                     = tiled ||| magicFocus (Mirror wtiled) ||| magicFocus wtiled ||| Mirror tiled
+    imLayouts                      = reflectHoriz $ withIMs (1/6) rosters $ Tall 0 delta ratio
+    rosters                        = [pidginRoster, gajimRoster]
+    pidginRoster                   = And (ClassName "Pidgin") (Role "buddy_list")
+    telRoster                      = And (ClassName "Ktp-contactlist") (Role "MainWindow")
+    gajimRoster                    = And (ClassName "Gajim") (Role "roster")
+    weAllFloatDownHere             = simplestFloat ||| Accordion
+    imTooSquare                    = Grid ||| Mirror zoomRow
+    browsersLayouts                = Mirror Accordion ||| magicFocus wtiled ||| Accordion ||| tiled ||| magicFocus (Mirror wtiled) ||| Mirror tiled -- not that I ever use anything other than mirror accor...
+    mediaLayouts                   = magicFocus (Mirror wtiled) ||| magicFocus wtiled
     -- default tiling algorithm partitions the screen into two panes
-    tiled                 = layoutHints $ Tall nmaster delta ratio
-    wtiled                = layoutHints $ Tall nmaster delta (4/5)
-    imtiled               = layoutHints $ Tall 2 delta (4/5)
+    tiled                          = layoutHints $ Tall nmaster delta ratio
+    wtiled                         = layoutHints $ Tall nmaster delta (4/5)
+    imtiled                        = layoutHints $ Tall 2 delta (4/5)
     -- The default number of windows in the master pane
-    nmaster               = 1
+    nmaster                        = 1
     -- Default proportion of screen occupied by master pane
-    ratio                 = 2/3
+    ratio                          = 2/3
     -- Percent of screen to increment by when resizing panes
-    delta                 = 3/100
+    delta                          = 3/100
 
 myBorderWidth = 0
 
