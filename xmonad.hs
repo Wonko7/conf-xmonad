@@ -147,7 +147,7 @@ myChat = "gajim"
 -- myChat "yggdrasill"  = "GDK_SCALE=3 GDK_DPI_SCALE=0.4 gajim"
 -- myChat "daban-urnud" = "GDK_SCALE=2 GDK_DPI_SCALE=0.5 gajim"
 
-myBrowser "daban-urnud" = "firefox-bin"
+myBrowser "daban-urnud" = "firefox"
 myBrowser _             = "firefox"
 
 spawnRemoteSessions "yggdrasill"  =  spawnRemoteTmuxSession "wg.nostromo.local" "gentoo"
