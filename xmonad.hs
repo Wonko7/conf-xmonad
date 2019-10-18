@@ -98,7 +98,7 @@ main = do
 
 myLayouts hostname =
     init $
-    modWorkspaces [[x] | x <- ['1'..'9']] (s1) $
+    modWorkspaces [[x] | x <- ['1'..'9']] (spacing $ borders hostname "screen1") $
     onWorkspaces ["1"] workLayouts $
     onWorkspaces ["2"] imTooSquare $
     onWorkspaces ["3"] weAllFloatDownHere $ -- not sure if I'm keeping this.
@@ -106,29 +106,23 @@ myLayouts hostname =
     onWorkspaces ["6", "7", "8"] workLayouts $
     onWorkspaces ["9"] imLayouts $
     -- second monitor:
-    modWorkspaces [['1', x] | x <- ['1'..'9']] (s2) $
+    modWorkspaces [['1', x] | x <- ['1'..'9']] (spacing $ borders hostname "screen2") $
     onWorkspaces ["11"] workLayouts $
     onWorkspaces ["12"] imTooSquare $
     onWorkspaces ["13"] weAllFloatDownHere $
     onWorkspaces ["14", "15"] browsersLayouts $
-    modWorkspaces ["18"] (s2) $
     onWorkspaces ["16", "17", "18"] workLayouts $
     onWorkspaces ["19"] imLayouts $
     defLayouts
   where
     -- FIXME try XMonad.Layout.BinarySpacePartition
-
     borders "yggdrasill" "screen1" = Border 20 20 20 20
-    borders "yggdrasill" "screen2" = Border 5 5 5 5
-    -- borders "yggdrasill"  = Border 20 20 20 20 FIXME make 5 on 2nd mon
+    borders "yggdrasill" "screen2" = Border 10 10 10 10
     borders "daban-urnud" _        = Border 10 10 10 10
     borders _  _                   = Border 10 10 10 10
-
-    init arg                        = noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts $ arg
-    spacing bd args                     = spacingRaw False bd True bd True $ args
-    s1 = spacing $ borders "yggdrasill" "screen1"
-    s2 = spacing $ borders "yggdrasill" "screen2"
-
+    init args                      = noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts args
+    spacing bd                     = spacingRaw False bd True bd True
+    --
     workLayouts                    = magicFocus (Mirror wtiled) ||| magicFocus wtiled ||| Mirror wtiled ||| wtiled
     defLayouts                     = tiled ||| magicFocus (Mirror wtiled) ||| magicFocus wtiled ||| Mirror tiled
     imLayouts                      = reflectHoriz $ withIMs (1/6) rosters $ Tall 0 delta ratio
