@@ -99,27 +99,23 @@ main = do
 myLayouts hostname =
     init $
     modWorkspaces [[x] | x <- ['1'..'9']] (spacing $ borders hostname "screen1") $
-    onWorkspaces ["1"] workLayouts $
-    onWorkspaces ["2"] imTooSquare $
-    onWorkspaces ["3"] weAllFloatDownHere $ -- not sure if I'm keeping this.
-    onWorkspaces ["4", "5"] browsersLayouts $
-    onWorkspaces ["6", "7", "8"] workLayouts $
-    onWorkspaces ["9"] imLayouts $
-    -- second monitor:
     modWorkspaces [['1', x] | x <- ['1'..'9']] (spacing $ borders hostname "screen2") $
-    onWorkspaces ["11"] workLayouts $
-    onWorkspaces ["12"] imTooSquare $
-    onWorkspaces ["13"] weAllFloatDownHere $
-    onWorkspaces ["14", "15"] browsersLayouts $
-    onWorkspaces ["16", "17", "18"] workLayouts $
-    onWorkspaces ["19"] imLayouts $
-    defLayouts
+    onWorkspaces (mirrorScreens ["1"]) workLayouts $
+    onWorkspaces (mirrorScreens ["2"]) imTooSquare $
+    onWorkspaces (mirrorScreens ["3"]) weAllFloatDownHere $ -- not sure if I'm keeping this.
+    onWorkspaces (mirrorScreens ["4", "5"]) browsersLayouts $
+    onWorkspaces (mirrorScreens ["6", "7", "8"]) workLayouts $
+    onWorkspaces (mirrorScreens ["9"]) imLayouts $
+    workLayouts
   where
+    -- ['2'] -> ['2', '12']
+    mirrorScreens [] = []
+    mirrorScreens (d:ds) = d:('1':d):mirrorScreens(ds)
     -- FIXME try XMonad.Layout.BinarySpacePartition
     borders "yggdrasill" "screen1" = Border 20 20 20 20
     borders "yggdrasill" "screen2" = Border 10 10 10 10
     borders "daban-urnud" _        = Border 10 10 10 10
-    borders _  _                   = Border 10 10 10 10
+    borders _ _                    = Border 10 10 10 10
     init args                      = noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts args
     spacing bd                     = spacingRaw False bd True bd True
     --
