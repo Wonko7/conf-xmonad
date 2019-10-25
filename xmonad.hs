@@ -53,20 +53,21 @@ import XMonad.Hooks.UrgencyHook
 import XMonad.Hooks.ManageHelpers
 
 -- layouts
-import XMonad.Layout.SimplestFloat
-import XMonad.Layout.NoBorders
 import XMonad.Layout.Accordion
-import XMonad.Layout.Reflect
-import XMonad.Layout.Tabbed
-import XMonad.Layout.PerWorkspace
+import XMonad.Layout.BinarySpacePartition
 import XMonad.Layout.Grid
-import XMonad.Layout.Spacing
+import XMonad.Layout.IM
+import XMonad.Layout.LayoutHints
+import XMonad.Layout.LayoutModifier
+import XMonad.Layout.MagicFocus
 import XMonad.Layout.MultiToggle
 import XMonad.Layout.MultiToggle.Instances
-import XMonad.Layout.LayoutHints
-import XMonad.Layout.MagicFocus
-import XMonad.Layout.IM
-import XMonad.Layout.LayoutModifier
+import XMonad.Layout.NoBorders
+import XMonad.Layout.PerWorkspace
+import XMonad.Layout.Reflect
+import XMonad.Layout.SimplestFloat
+import XMonad.Layout.Spacing
+import XMonad.Layout.Tabbed
 import XMonad.Layout.ZoomRow
 import XMonad.Util.WindowProperties
 
@@ -76,16 +77,16 @@ import XMonad.MyStuff.AddRosters
 main = do
   toggleFadeSet <- newIORef DS.empty
   hostname      <- getHostName
-  xmonad $ ewmh desktopConfig
-    { keys              = myKeys hostname toggleFadeSet
-    , mouseBindings     = myMouseBindings
-    , terminal          = myTerminal
-    , workspaces        = myTopics
-    , layoutHook        = myLayouts hostname
+  xmonad $ withNavigation2DConfig navConf $ ewmh desktopConfig
+    { keys              = shortcuts hostname toggleFadeSet
+    , mouseBindings     = mouse
+    , terminal          = term
+    , workspaces        = topics
+    , layoutHook        = layouts hostname
     , modMask           = mod4Mask
-    , logHook           = myLogHook toggleFadeSet
-    , focusFollowsMouse = myFocusFollowsMouse
-    , borderWidth       = myBorderWidth
+    , logHook           = loghook toggleFadeSet
+    , focusFollowsMouse = False
+    , borderWidth       = 0
     , manageHook        = composeAll
       [ className =? "Tor Browser" --> doCenterFloat -- for security reasons! window size is fingerprintable!
       , className =? "lxqt-panel" --> doIgnore
@@ -96,11 +97,11 @@ main = do
     }
       where unfloat = ask >>= doF . W.sink
 
-myLayouts hostname =
+layouts hostname =
     init $
     modWorkspaces [[x] | x <- ['1'..'9']] (spacing $ borders hostname "screen1") $
     modWorkspaces [['1', x] | x <- ['1'..'9']] (spacing $ borders hostname "screen2") $
-    onWorkspaces (mirrorScreens ["1"]) workLayouts $
+    onWorkspaces (mirrorScreens ["1"]) mediaLayouts $
     onWorkspaces (mirrorScreens ["2"]) imTooSquare $
     onWorkspaces (mirrorScreens ["3"]) weAllFloatDownHere $ -- not sure if I'm keeping this.
     onWorkspaces (mirrorScreens ["4", "5"]) browsersLayouts $
@@ -120,38 +121,36 @@ myLayouts hostname =
     spacing bd                     = spacingRaw False bd True bd True
     --
     workLayouts                    = magicFocus (Mirror wtiled) ||| magicFocus wtiled ||| Mirror wtiled ||| wtiled
-    defLayouts                     = tiled ||| magicFocus (Mirror wtiled) ||| magicFocus wtiled ||| Mirror tiled
+    -- defLayouts                     = tiled ||| magicFocus (Mirror wtiled) ||| magicFocus wtiled ||| Mirror tiled
     imLayouts                      = reflectHoriz $ withIMs (1/6) rosters $ Tall 0 delta ratio
     rosters                        = [pidginRoster, gajimRoster]
     pidginRoster                   = And (ClassName "Pidgin") (Role "buddy_list")
-    telRoster                      = And (ClassName "Ktp-contactlist") (Role "MainWindow")
     gajimRoster                    = And (ClassName "Gajim") (Role "roster")
     weAllFloatDownHere             = simplestFloat ||| Accordion
-    imTooSquare                    = Grid ||| Mirror zoomRow
+    imTooSquare                    = Grid ||| emptyBSP ||| Mirror zoomRow
     browsersLayouts                = Mirror Accordion ||| magicFocus wtiled ||| Accordion ||| tiled ||| magicFocus (Mirror wtiled) ||| Mirror tiled -- not that I ever use anything other than mirror accor...
+    --mediaLayouts                   = magicFocus (Mirror wtiled) ||| magicFocus wtiled
     mediaLayouts                   = magicFocus (Mirror wtiled) ||| magicFocus wtiled
     -- default tiling algorithm partitions the screen into two panes
-    tiled                          = layoutHints $ Tall nmaster delta ratio
+    tiled                          = layoutHints $ Tall nmaster delta (2/3)
     wtiled                         = layoutHints $ Tall nmaster delta (4/5)
     imtiled                        = layoutHints $ Tall 2 delta (4/5)
     -- The default number of windows in the master pane
     nmaster                        = 1
-    -- Default proportion of screen occupied by master pane
     ratio                          = 2/3
     -- Percent of screen to increment by when resizing panes
     delta                          = 3/100
 
-myBorderWidth = 0
 
-myTerminal :: String
-myTerminal = "~/conf/misc/scripts/st.sh"
-myChat = "gajim"
+term :: String
+term = "~/conf/misc/scripts/st.sh"
+chat = "gajim"
 
--- myChat "yggdrasill"  = "GDK_SCALE=3 GDK_DPI_SCALE=0.4 gajim"
--- myChat "daban-urnud" = "GDK_SCALE=2 GDK_DPI_SCALE=0.5 gajim"
+-- chat "yggdrasill"  = "GDK_SCALE=3 GDK_DPI_SCALE=0.4 gajim"
+-- chat "daban-urnud" = "GDK_SCALE=2 GDK_DPI_SCALE=0.5 gajim"
 
-myBrowser "daban-urnud" = "firefox"
-myBrowser _             = "firefox"
+browser "daban-urnud" = "firefox"
+browser _             = "firefox"
 
 spawnRemoteSessions "yggdrasill"  =  spawnRemoteTmuxSession "wg.nostromo.local" "gentoo"
                                   >> spawnRemoteTmuxSession "wg.undefined.local" "gentoo"
@@ -167,9 +166,9 @@ spawnRemoteSessions _             =  spawnRemoteTmuxSession "wg.nostromo.local" 
 xReset = "pactl set-sink-volume 0 30%; pactl set-sink-volume 1 20%; pactl set-sink-mute 1 true; pactl set-sink-mute 0 true; " -- reset sound
       ++ "setxkbmap dvorak; ~/conf/misc/scripts/kbd.sh; " -- reset kbd FIXME should be done on wake up!
 
-spawnTmuxSession name               = spawn $ "LOAD_TMUX_SESSION=" ++ name ++ " " ++ myTerminal
-spawnRemoteTmuxSession host session = spawn $ myTerminal ++ " -e ssh -t " ++ host ++ " LOAD_TMUX_SESSION=" ++ session ++ " zsh"
-spawnCmd cmd                        = spawn $ myTerminal ++ " -e " ++ cmd
+spawnTmuxSession name               = spawn $ "LOAD_TMUX_SESSION=" ++ name ++ " " ++ term
+spawnRemoteTmuxSession host session = spawn $ term ++ " -e ssh -t " ++ host ++ " LOAD_TMUX_SESSION=" ++ session ++ " zsh"
+spawnCmd cmd                        = spawn $ term ++ " -e " ++ cmd
 
 defaultSession "daban-urnud" "1" = "media"
 defaultSession "daban-urnud" "8" = "gentoo"
@@ -178,10 +177,10 @@ defaultSession "yggdrasill"  "8" = "2m"
 defaultSession _             "1" = "gentoo"
 defaultSession _             "8" = "reader"
 
-myTopics :: [Topic]
-myTopics = [[x] | x <- ['1'..'9']] ++ [['1', x] | x <- ['1'..'9']] -- "1" --> "19", skipping 10 & 0
-myTopConf :: String -> TopicConfig
-myTopConf hostname = def
+topics :: [Topic]
+topics = [[x] | x <- ['1'..'9']] ++ [['1', x] | x <- ['1'..'9']] -- "1" --> "19", skipping 10 & 0
+topConf :: String -> TopicConfig
+topConf hostname = def
   { topicDirs = M.fromList [(show i, "~/") | i <- [1..9] ++ [11 .. 19]]
   , defaultTopic = "1"
   , defaultTopicAction = const $ return ()
@@ -189,23 +188,26 @@ myTopConf hostname = def
       [ ("1", spawnTmuxSession $ defaultSession hostname "1")
       , ("2", spawnRemoteSessions hostname)
       , ("3", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
-      , ("4", spawnHere $ myBrowser hostname ++ " -P uman")
+      , ("4", spawnHere $ browser hostname ++ " -P uman")
       , ("8", spawnTmuxSession $ defaultSession hostname "8")
-      , ("9", spawnHere myChat)
+      , ("9", spawnHere chat)
       , ("11", spawnTmuxSession "logs")
       , ("12", spawnRemoteSessions hostname)
       , ("13", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
-      , ("14", spawnHere $ myBrowser hostname ++ " -P small")
+      , ("14", spawnHere $ browser hostname ++ " -P small")
       , ("17", spawnTmuxSession "2mp")
-      --, ("17", spawnHere $ myTerminal ++ " -e tmux")
+      --, ("17", spawnHere $ term ++ " -e tmux")
 
       , ("18", spawn "VIM_SERVER=DANCE_COMMANDER ~/conf/misc/scripts/nvim.sh")
       , ("19", spawnTmuxSession "chat")
       ]
   }
 
-myLogHook :: IORef (DS.Set Window) -> X ()
-myLogHook toggleFadeSet = historyHook >> fadeOutLogHook (fadeIf (fadeCondition toggleFadeSet) 0.8)
+
+-- Transparency:
+--
+loghook :: IORef (DS.Set Window) -> X ()
+loghook toggleFadeSet = historyHook >> fadeOutLogHook (fadeIf (fadeCondition toggleFadeSet) 0.8)
 
 fadeCondition :: IORef (DS.Set Window) -> Query Bool
 fadeCondition floats =
@@ -221,8 +223,8 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
     -- b, d, g, v, V, 0, s, v, i, A, q backspace   shift v, shift 0, shift t, shift z, shift period for something fun.
     --
     -- terminal stuff:
-    ((modm, xK_Return),                     spawnHere $ myTerminal ++ " -e tmux")
-  , ((modm .|. shiftMask,   xK_Return),     spawnHere myTerminal)
+    ((modm, xK_Return),                     spawnHere $ term ++ " -e tmux")
+  , ((modm .|. shiftMask,   xK_Return),     spawnHere term)
   , ((modm .|. shiftMask,   xK_i),          spawnHere "urxvt") -- fallback term: FIXME use for something else.
 
   , ((modm,                 xK_r),          spawnHere "rofi -combi-modi window,drun,ssh -theme lb -font \"fira 30\" -show combi") -- themes: gruvbox-dark-soft, lb, Paper, solarized_alternate
@@ -242,7 +244,7 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
   , ((modm,                 xK_period),     sendMessage (IncMasterN $ -1))
   , ((modm,                 xK_f),          sendMessage (Toggle FULL))
   , ((modm,                 xK_m),          windows W.swapMaster)
-  , ((modm,                 xK_y),          currentTopicAction $ myTopConf hostname)
+  , ((modm,                 xK_y),          currentTopicAction $ topConf hostname)
   , ((modm .|. shiftMask,   xK_b),          sendMessage ToggleStruts) -- Toggle the status bar gap -- Use this binding with avoidStruts from Hooks.ManageDocks.
   , ((modm,                 xK_t),          sinkAll) --  Push windows back into tiling
     -- window stuff:
@@ -286,8 +288,8 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
       [ ((0, xK_q),         spawnHere "qutebrowser")
       , ((0,         xK_c), spawnHere "chromium")
       , ((0,         xK_g), spawnHere "google-chrome-stable")
-      , ((0,         xK_f), spawnHere $ myBrowser hostname ++ " -P uman")
-      , ((shiftMask, xK_f), spawnHere $ myBrowser hostname ++ " --ProfileManager --new-instance")
+      , ((0,         xK_f), spawnHere $ browser hostname ++ " -P uman")
+      , ((shiftMask, xK_f), spawnHere $ browser hostname ++ " --ProfileManager --new-instance")
       , ((0,         xK_o), spawnHere "opera")
       , ((0,         xK_t), spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
       ])
@@ -333,7 +335,7 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
     ])
   ]
   ++ -- this could be in previous [], but this should be grouped with the next group of keyboard definitions:
-  [ ((modm, xK_0), windows (viewOnScreen 1 "18") >> currentTopicAction (myTopConf hostname)) ] -- raise dance commander on external monintor.
+  [ ((modm, xK_0), windows (viewOnScreen 1 "18") >> currentTopicAction (topConf hostname)) ] -- raise dance commander on external monintor.
   ++
   [((m .|. modm, k), windows $ f i)
     | (i, k) <- zip [[x] | x <- ['1'..'9']] [xK_1..xK_9] -- lest we forget: [x] -> char vs [char] = string in haskell --> "1" through "9"
@@ -347,16 +349,16 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
 
 modalmode hostname toggleFadeSet conf@(XConfig {XMonad.modMask = modm}) = [ ((m `xor` modm, k), a >> (SM.submap . M.fromList $ modalmode hostname toggleFadeSet conf)) | ((m, k), a) <- ks hostname toggleFadeSet conf ]
 
-myKeys :: String -> IORef (DS.Set Window) -> XConfig Layout -> M.Map (KeyMask, KeySym) (X ())
-myKeys hostname toggleFadeSet conf@(XConfig {XMonad.modMask = modm}) = M.fromList $ ((modm, xK_n), SM.submap . M.fromList $ modalmode hostname toggleFadeSet conf) : ks hostname toggleFadeSet conf
+shortcuts :: String -> IORef (DS.Set Window) -> XConfig Layout -> M.Map (KeyMask, KeySym) (X ())
+shortcuts hostname toggleFadeSet conf@(XConfig {XMonad.modMask = modm}) = M.fromList $ ((modm, xK_n), SM.submap . M.fromList $ modalmode hostname toggleFadeSet conf) : ks hostname toggleFadeSet conf
 
-myMouseBindings XConfig {XMonad.modMask = modm} = M.fromList
+navConf :: Navigation2DConfig
+navConf = def { defaultTiledNavigation = hybridOf sideNavigation centerNavigation }
+
+mouse XConfig {XMonad.modMask = modm} = M.fromList
   [ ((modm, button1), \w -> focus w >> mouseMoveWindow w >> windows W.shiftMaster)
   -- mod-button2, Raise the window to the top of the stack... useless FIXME could find something useful here
   , ((modm, button2), \w -> focus w >> windows W.shiftMaster)
   -- mod-button3, Set the window to floating mode and resize by dragging
   , ((modm, button3), \w -> focus w >> mouseResizeWindow w >> windows W.shiftMaster)
   ]
-
-myFocusFollowsMouse :: Bool
-myFocusFollowsMouse = False
