@@ -324,8 +324,8 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
     , ((0,         xK_c),          spawn "~/conf/misc/scripts/dunst.sh close_all")
     , ((0,         xK_h),          spawn "~/conf/misc/scripts/dunst.sh history")
     -- pause and resume dunst notifs
-    , ((0,         xK_quoteright), spawn "killall -SIGUSR1 dunst")
-    , ((shiftMask, xK_quoteright), spawn "killall -SIGUSR2 dunst")
+    , ((0,         xK_quoteright), spawn "s6-svc -1 ~/conf/s6-services/dunst || killall -SIGUSR1 dunst; s6-svc -1 ~/conf/s6-services/notif || killall -SIGUSR1 notif;")
+    , ((shiftMask, xK_quoteright), spawn "s6-svc -2 ~/conf/s6-services/dunst || killall -SIGUSR2 dunst; s6-svc -2 ~/conf/s6-services/notif || killall -SIGUSR2 notif;")
 
     -- misc:
     , ((0,         xK_q),          spawn "xmonad --recompile; xmonad --restart")
