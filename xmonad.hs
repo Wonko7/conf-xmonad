@@ -287,7 +287,7 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
     , ((modm, xK_b), SM.submap . M.fromList $
       [ ((0, xK_q),         spawnHere "qutebrowser")
       , ((0,         xK_c), spawnHere "chromium")
-      , ((0,         xK_g), spawnHere "google-chrome-stable")
+      , ((0,         xK_g), spawnHere "google-chrome-stable") -- FIXME: yggdrasill needs --force-device-scale-factor=2
       , ((0,         xK_f), spawnHere $ browser hostname ++ " -P uman")
       , ((shiftMask, xK_f), spawnHere $ browser hostname ++ " --ProfileManager --new-instance")
       , ((0,         xK_o), spawnHere "opera")
@@ -301,7 +301,8 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
       ])
     -- terms:
     , ((modm, xK_t), SM.submap . M.fromList $
-      [ ((0, xK_t), spawnHere "terminology")
+      [ ((0, xK_a), spawnHere "alacritty")
+      , ((0, xK_t), spawnHere "terminology")
       , ((0, xK_x), spawnHere "xterm")
       , ((0, xK_u), spawnHere "urxvt")
       , ((0, xK_s), spawnHere "st")
@@ -310,7 +311,7 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
   -- random things:
   , ((modm, xK_z), SM.submap . M.fromList $
     -- session locking:
-    [ ((modm,      xK_z),          spawn "xscreensaver-command --lock || (xscreensaver -no-splash&) && sleep 0.5 && xscreensaver-command -lock")
+    [ ((modm,      xK_z),          spawn "xscreensaver-command --lock")
     , ((0,         xK_s),          spawn $ xReset ++ "systemctl suspend")
     , ((shiftMask, xK_s),          spawn $ xReset ++ "systemctl hybrid-sleep")
     , ((shiftMask, xK_h),          spawn $ xReset ++ "systemctl hibernate")
