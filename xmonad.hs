@@ -116,6 +116,7 @@ layouts hostname =
     borders "yggdrasill" "screen1" = Border 20 20 20 20
     borders "yggdrasill" "screen2" = Border 10 10 10 10
     borders "daban-urnud" _        = Border 10 10 10 10
+    borders "rocinante"   _        = Border 10 10 10 10
     borders _ _                    = Border 10 10 10 10
     init args                      = noBorders . mkToggle (NOBORDERS ?? FULL ?? EOT) $ avoidStruts args
     spacing bd                     = spacingRaw False bd True bd True
@@ -172,6 +173,8 @@ spawnCmd cmd                        = spawn $ term ++ " -e " ++ cmd
 
 defaultSession "daban-urnud" "1" = "media"
 defaultSession "daban-urnud" "8" = "gentoo"
+defaultSession "rocinante" "1"   = "media"
+defaultSession "rocinante" "8"   = "gentoo"
 defaultSession "yggdrasill"  "1" = "gentoo"
 defaultSession "yggdrasill"  "8" = "2m"
 defaultSession _             "1" = "gentoo"
