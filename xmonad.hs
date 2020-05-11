@@ -150,8 +150,10 @@ chat = "gajim"
 -- chat "yggdrasill"  = "GDK_SCALE=3 GDK_DPI_SCALE=0.4 gajim"
 -- chat "daban-urnud" = "GDK_SCALE=2 GDK_DPI_SCALE=0.5 gajim"
 
-browser "daban-urnud" = "firefox"
-browser _             = "firefox"
+browser "daban-urnud" "firefox" = "firefox"
+browser _             "firefox" = "firefox"
+browser "yggdrasill"  "chrome"  = "google-chrome-stable --force-device-scale-factor=2"
+browser _             "chrome"  = "google-chrome-stable"
 
 spawnRemoteSessions "yggdrasill"  =  spawnRemoteTmuxSession "wg.nostromo.local" "gentoo"
                                   >> spawnRemoteTmuxSession "wg.undefined.local" "gentoo"
@@ -176,7 +178,7 @@ defaultSession "daban-urnud" "8" = "gentoo"
 defaultSession "rocinante" "1"   = "media"
 defaultSession "rocinante" "8"   = "gentoo"
 defaultSession "yggdrasill"  "1" = "gentoo"
-defaultSession "yggdrasill"  "8" = "2m"
+defaultSession "yggdrasill"  "8" = "a2m"
 defaultSession _             "1" = "gentoo"
 defaultSession _             "8" = "reader"
 
@@ -191,13 +193,13 @@ topConf hostname = def
       [ ("1", spawnTmuxSession $ defaultSession hostname "1")
       , ("2", spawnRemoteSessions hostname)
       , ("3", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
-      , ("4", spawnHere $ browser hostname ++ " -P uman")
+      , ("4", spawnHere $ browser hostname "firefox" ++ " -P uman")
       , ("8", spawnTmuxSession $ defaultSession hostname "8")
       , ("9", spawnHere chat)
       , ("11", spawnTmuxSession "logs")
       , ("12", spawnRemoteSessions hostname)
       , ("13", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
-      , ("14", spawnHere $ browser hostname ++ " -P small")
+      , ("14", spawnHere $ browser hostname "firefox" ++ " -P small")
       , ("17", spawnTmuxSession "2mp")
       --, ("17", spawnHere $ term ++ " -e tmux")
 
@@ -290,9 +292,9 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
     , ((modm, xK_b), SM.submap . M.fromList $
       [ ((0, xK_q),         spawnHere "qutebrowser")
       , ((0,         xK_c), spawnHere "chromium")
-      , ((0,         xK_g), spawnHere "google-chrome-stable") -- FIXME: yggdrasill needs --force-device-scale-factor=2
-      , ((0,         xK_f), spawnHere $ browser hostname ++ " -P uman")
-      , ((shiftMask, xK_f), spawnHere $ browser hostname ++ " --ProfileManager --new-instance")
+      , ((0,         xK_g), spawnHere $ browser hostname "chrome")
+      , ((0,         xK_f), spawnHere $ browser hostname "firefox" ++ " -P uman")
+      , ((shiftMask, xK_f), spawnHere $ browser hostname "firefox" ++ " --ProfileManager --new-instance")
       , ((0,         xK_o), spawnHere "opera")
       , ((0,         xK_t), spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
       ])
