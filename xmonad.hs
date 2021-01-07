@@ -177,7 +177,7 @@ defaultSession "daban-urnud" "8" = "gentoo"
 defaultSession "rocinante" "1"   = "media"
 defaultSession "rocinante" "8"   = "gentoo"
 defaultSession "yggdrasill"  "1" = "gentoo"
-defaultSession "yggdrasill"  "8" = "a2m"
+defaultSession "yggdrasill"  "8" = "besport"
 defaultSession _             "1" = "gentoo"
 defaultSession _             "8" = "reader"
 
