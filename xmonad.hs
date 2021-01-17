@@ -196,6 +196,7 @@ topConf hostname = def
       , ("2", spawnRemoteSessions hostname)
       , ("3", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
       , ("4", spawnHere $ browser hostname "firefox" ++ " -P uman")
+      , ("5", spawn "EMACS_SERVER=DANCE_COMMANDER ~/conf/misc/scripts/emacs.sh /data/org/work/blackbox.org")
       , ("8", spawnTmuxSession $ defaultSession hostname "8")
       , ("9", spawnHere chat)
       , ("11", spawnTmuxSession "logs")
