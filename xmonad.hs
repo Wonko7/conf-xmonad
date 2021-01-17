@@ -75,17 +75,17 @@ import XMonad.Util.WindowProperties
 import XMonad.MyStuff.AddRosters
 
 main = do
-  toggleFadeSet <- newIORef DS.empty
-  hostname      <- getHostName
-  xmonad $ withNavigation2DConfig navConf $ ewmh desktopConfig
-    { keys              = shortcuts hostname toggleFadeSet
-    , mouseBindings     = mouse
-    , terminal          = term
-    , workspaces        = topics
-    , layoutHook        = layouts hostname
-    , modMask           = mod4Mask
-    , logHook           = loghook toggleFadeSet
-    , focusFollowsMouse = False
+toggleFadeSet <- newIORef DS.empty
+hostname      <- getHostName
+xmonad $ withNavigation2DConfig navConf $ ewmh desktopConfig
+  { keys              = shortcuts hostname toggleFadeSet
+  , mouseBindings     = mouse
+  , terminal          = term
+  , workspaces        = topics
+  , layoutHook        = layouts hostname
+  , modMask           = mod4Mask
+  , logHook           = loghook toggleFadeSet
+  , focusFollowsMouse = False
     , borderWidth       = 0
     , manageHook        = composeAll
       [ className =? "Tor Browser" --> doCenterFloat -- for security reasons! window size is fingerprintable!
@@ -104,7 +104,8 @@ layouts hostname =
     onWorkspaces (mirrorScreens ["1"]) mediaLayouts $
     onWorkspaces (mirrorScreens ["2"]) imTooSquare $
     onWorkspaces (mirrorScreens ["3"]) weAllFloatDownHere $ -- not sure if I'm keeping this.
-    onWorkspaces (mirrorScreens ["4", "5"]) browsersLayouts $
+    onWorkspaces (mirrorScreens ["4"]) browsersLayouts $
+    onWorkspaces (mirrorScreens ["5"]) browserAndNotesLayouts $
     onWorkspaces (mirrorScreens ["6", "7", "8"]) workLayouts $
     onWorkspaces (mirrorScreens ["9"]) imLayouts $
     workLayouts
@@ -127,9 +128,11 @@ layouts hostname =
     rosters                        = [pidginRoster, gajimRoster]
     pidginRoster                   = And (ClassName "Pidgin") (Role "buddy_list")
     gajimRoster                    = And (ClassName "Gajim") (Role "roster")
+    emacs                          = ClassName "Emacs"
     weAllFloatDownHere             = simplestFloat ||| Accordion
     imTooSquare                    = Grid ||| emptyBSP ||| Mirror zoomRow
     browsersLayouts                = Mirror Accordion ||| magicFocus wtiled ||| Accordion ||| tiled ||| magicFocus (Mirror wtiled) ||| Mirror tiled -- not that I ever use anything other than mirror accor...
+    browserAndNotesLayouts         = Mirror (withIMs (1/4) [emacs] $ (Mirror browsersLayouts))
     --mediaLayouts                   = magicFocus (Mirror wtiled) ||| magicFocus wtiled
     mediaLayouts                   = magicFocus (Mirror wtiled) ||| magicFocus wtiled
     -- default tiling algorithm partitions the screen into two panes
@@ -230,6 +233,7 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
     ((modm, xK_Return),                     spawnHere $ term ++ " -e tmux")
   , ((modm .|. shiftMask,   xK_Return),     spawnHere term)
   , ((modm .|. shiftMask,   xK_i),          spawnHere "urxvt") -- fallback term: FIXME use for something else.
+  , ((modm,                 xK_e),          spawn "EMACS_SERVER=DANCE_COMMANDER ~/conf/misc/scripts/emacs.sh")
 
   , ((modm,                 xK_r),          spawnHere "rofi -combi-modi window,drun,ssh -theme lb -font \"fira 30\" -show combi") -- themes: gruvbox-dark-soft, lb, Paper, solarized_alternate
     -- workspace/layout stuff:
@@ -275,6 +279,7 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
   -- launch stuff!
   , ((modm, xK_a), SM.submap . M.fromList $
     [ ((0, xK_c), spawnHere "calibre")
+    , ((0, xK_e), spawn "EMACS_SERVER=DANCE_COMMANDER ~/conf/misc/scripts/emacs.sh")
     , ((0, xK_d), spawnHere "dolphin")
     , ((0, xK_g), spawnHere "gimp")
     , ((0, xK_p), spawnHere "pavucontrol-qt")
