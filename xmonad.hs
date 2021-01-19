@@ -104,7 +104,7 @@ layouts hostname =
     onWorkspaces (mirrorScreens ["1"]) mediaLayouts $
     onWorkspaces (mirrorScreens ["2"]) imTooSquare $
     onWorkspaces (mirrorScreens ["3"]) weAllFloatDownHere $ -- not sure if I'm keeping this.
-    onWorkspaces (mirrorScreens ["4"]) browsersLayouts $
+    onWorkspaces (mirrorScreens ["4"]) browserLayouts $
     onWorkspaces (mirrorScreens ["5"]) browserAndNotesLayouts $
     onWorkspaces (mirrorScreens ["6", "7", "8"]) workLayouts $
     onWorkspaces (mirrorScreens ["9"]) imLayouts $
@@ -131,8 +131,8 @@ layouts hostname =
     emacs                          = ClassName "Emacs"
     weAllFloatDownHere             = simplestFloat ||| Accordion
     imTooSquare                    = Grid ||| emptyBSP ||| Mirror zoomRow
-    browsersLayouts                = Mirror Accordion ||| magicFocus wtiled ||| Accordion ||| tiled ||| magicFocus (Mirror wtiled) ||| Mirror tiled -- not that I ever use anything other than mirror accor...
-    browserAndNotesLayouts         = Mirror (withIMs (1/4) [emacs] $ (Mirror browsersLayouts))
+    browserLayouts                  = Mirror Accordion ||| magicFocus wtiled ||| Accordion ||| tiled ||| magicFocus (Mirror wtiled) ||| Mirror tiled -- not that I ever use anything other than mirror accor...
+    browserAndNotesLayouts         = (Mirror (withIMs (1/4) [emacs] $ Accordion)) ||| Mirror wtiled ||| wtiled
     --mediaLayouts                   = magicFocus (Mirror wtiled) ||| magicFocus wtiled
     mediaLayouts                   = magicFocus (Mirror wtiled) ||| magicFocus wtiled
     -- default tiling algorithm partitions the screen into two panes
