@@ -154,8 +154,10 @@ chat = "gajim"
 -- chat "daban-urnud" = "GDK_SCALE=2 GDK_DPI_SCALE=0.5 gajim"
 
 browser "daban-urnud" "firefox" = "firefox"
+browser "enterprise"  "firefox" = "firejail --netns=out firefox"
 browser _             "firefox" = "firefox"
 browser "yggdrasill"  "chrome"  = "google-chrome-stable --force-device-scale-factor=2"
+browser "enterprise"  "chrome"  = "firejail --netns=out google-chrome-stable"
 browser _             "chrome"  = "google-chrome-stable"
 
 spawnRemoteSessions "yggdrasill"  =  spawnRemoteTmuxSession "nostromo.underage.wang" "remote"
@@ -181,6 +183,7 @@ defaultSession "rocinante" "1"   = "media"
 defaultSession "rocinante" "8"   = "gentoo"
 defaultSession "yggdrasill"  "1" = "gentoo"
 defaultSession "yggdrasill"  "8" = "besport"
+defaultSession "enterprise"  "8" = "besport"
 defaultSession _             "1" = "gentoo"
 defaultSession _             "8" = "reader"
 
