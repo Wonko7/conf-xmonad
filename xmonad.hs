@@ -103,7 +103,7 @@ layouts hostname =
     modWorkspaces [['1', x] | x <- ['1'..'9']] (spacing $ borders hostname "screen2") $
     onWorkspaces (mirrorScreens ["1"]) mediaLayouts $
     onWorkspaces (mirrorScreens ["2"]) imTooSquare $
-    onWorkspaces (mirrorScreens ["3"]) weAllFloatDownHere $ -- not sure if I'm keeping this.
+    onWorkspaces (mirrorScreens ["3"]) browserLayouts $
     onWorkspaces (mirrorScreens ["4"]) browserLayouts $
     onWorkspaces (mirrorScreens ["5"]) browserAndNotesLayouts $
     onWorkspaces (mirrorScreens ["6", "7", "8"]) workLayouts $
@@ -129,7 +129,7 @@ layouts hostname =
     pidginRoster                   = And (ClassName "Pidgin") (Role "buddy_list")
     gajimRoster                    = And (ClassName "Gajim") (Role "roster")
     emacs                          = ClassName "Emacs"
-    weAllFloatDownHere             = simplestFloat ||| Accordion
+    -- weAllFloatDownHere             = simplestFloat ||| Accordion
     imTooSquare                    = Grid ||| emptyBSP ||| Mirror zoomRow
     browserLayouts                  = Mirror Accordion ||| magicFocus wtiled ||| Accordion ||| tiled ||| magicFocus (Mirror wtiled) ||| Mirror tiled -- not that I ever use anything other than mirror accor...
     browserAndNotesLayouts         = (Mirror (withIMs (1/4) [emacs] $ Accordion)) ||| Mirror wtiled ||| wtiled
@@ -153,11 +153,11 @@ chat = "gajim"
 -- chat "yggdrasill"  = "GDK_SCALE=3 GDK_DPI_SCALE=0.4 gajim"
 -- chat "daban-urnud" = "GDK_SCALE=2 GDK_DPI_SCALE=0.5 gajim"
 
-browser "daban-urnud" "firefox" = "firefox"
-browser "enterprise"  "firefox" = "firejail --netns=out firefox"
+browser "enterprise"  "firefox" = "firejail firefox"
+browser "yggdrasill"  "firefox" = "firejail firefox"
 browser _             "firefox" = "firefox"
-browser "yggdrasill"  "chrome"  = "google-chrome-stable --force-device-scale-factor=2"
-browser "enterprise"  "chrome"  = "firejail --netns=out google-chrome-stable"
+browser "enterprise"  "chrome"  = "firejail google-chrome-stable"
+browser "yggdrasill"  "chrome"  = "firejail google-chrome-stable"
 browser _             "chrome"  = "google-chrome-stable"
 
 spawnRemoteSessions "yggdrasill"  =  spawnRemoteTmuxSession "nostromo.underage.wang" "remote"
@@ -301,7 +301,8 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
       [ ((0, xK_q),         spawnHere "qutebrowser")
       , ((0,         xK_c), spawnHere "chromium")
       , ((0,         xK_g), spawnHere $ browser hostname "chrome")
-      , ((0,         xK_f), spawnHere $ browser hostname "firefox" ++ " -P uman")
+      , ((0,         xK_f), spawnHere $ browser hostname "firefox" ++ "-P uman")
+      , ((0,         xK_l), spawnHere $ browser hostname "firefox" ++ "-P local")
       , ((shiftMask, xK_f), spawnHere $ browser hostname "firefox" ++ " --ProfileManager --new-instance")
       , ((0,         xK_o), spawnHere "opera")
       , ((0,         xK_t), spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
