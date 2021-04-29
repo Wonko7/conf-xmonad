@@ -153,12 +153,15 @@ chat = "gajim"
 -- chat "yggdrasill"  = "GDK_SCALE=3 GDK_DPI_SCALE=0.4 gajim"
 -- chat "daban-urnud" = "GDK_SCALE=2 GDK_DPI_SCALE=0.5 gajim"
 
-browser "enterprise"  "firefox" = "firejail firefox"
-browser "yggdrasill"  "firefox" = "firejail firefox"
-browser _             "firefox" = "firefox"
-browser "enterprise"  "chrome"  = "firejail google-chrome-stable"
-browser "yggdrasill"  "chrome"  = "firejail google-chrome-stable"
-browser _             "chrome"  = "google-chrome-stable"
+browser "enterprise"  "firefox"  = "firefox"
+browser "yggdrasill"  "firefox"  = "firefox"
+browser _             "firefox"  = "firefox"
+browser "enterprise"  "chrome"   = "google-chrome-stable"
+browser "yggdrasill"  "chrome"   = "firejail google-chrome-stable"
+browser _             "chrome"   = "google-chrome-stable"
+browser "enterprise"  "chromium" = "chromium"
+browser "yggdrasill"  "chromium" = "firejail chromium"
+browser _             "chromium" = "chromium"
 
 spawnRemoteSessions "yggdrasill"  =  spawnRemoteTmuxSession "nostromo.underage.wang" "remote"
                                   >> spawnRemoteTmuxSession "serenity.underage.wang" "remote"
@@ -298,13 +301,11 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
       ])
     -- browsers:
     , ((modm, xK_b), SM.submap . M.fromList $
-      [ ((0, xK_q),         spawnHere "qutebrowser")
-      , ((0,         xK_c), spawnHere "chromium")
+      [ ((0,         xK_c), spawnHere $ browser hostname "chromium")
       , ((0,         xK_g), spawnHere $ browser hostname "chrome")
       , ((0,         xK_f), spawnHere $ browser hostname "firefox" ++ " -P uman")
       , ((0,         xK_l), spawnHere $ browser hostname "firefox" ++ " -P local")
       , ((shiftMask, xK_f), spawnHere $ browser hostname "firefox" ++ " --ProfileManager --new-instance")
-      , ((0,         xK_o), spawnHere "opera")
       , ((0,         xK_t), spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
       ])
     -- chats:
