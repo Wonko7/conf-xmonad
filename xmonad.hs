@@ -101,18 +101,18 @@ layouts hostname =
     init $
     modWorkspaces [[x] | x <- ['1'..'9']] (spacing $ borders hostname "screen1") $
     modWorkspaces [['1', x] | x <- ['1'..'9']] (spacing $ borders hostname "screen2") $
-    onWorkspaces (mirrorScreens ["1"]) mediaLayouts $
-    onWorkspaces (mirrorScreens ["2"]) imTooSquare $
-    onWorkspaces (mirrorScreens ["3"]) browserLayouts $
-    onWorkspaces (mirrorScreens ["4"]) browserLayouts $
-    onWorkspaces (mirrorScreens ["5"]) browserAndNotesLayouts $
-    onWorkspaces (mirrorScreens ["6", "7", "8"]) workLayouts $
-    onWorkspaces (mirrorScreens ["9"]) imLayouts $
+    onWorkspaces ["1"] mediaLayouts $
+    onWorkspaces ["2"] imTooSquare $
+    onWorkspaces ["3"] browserLayouts $
+    onWorkspaces ["4"] browserLayouts $
+    onWorkspaces ["5"] browserAndNotesLayouts $
+    onWorkspaces ["6", "7", "8"] workLayouts $
+    onWorkspaces ["9"] imLayouts $
     workLayouts
   where
     -- ['2'] -> ['2', '12']
-    mirrorScreens [] = []
-    mirrorScreens (d:ds) = d:('1':d):mirrorScreens(ds)
+    -- mirrorScreens [] = []
+    -- mirrorScreens (d:ds) = d:('1':d):mirrorScreens(ds)
     -- FIXME try XMonad.Layout.BinarySpacePartition
     borders "yggdrasill" "screen1" = Border 20 20 20 20
     borders "yggdrasill" "screen2" = Border 10 10 10 10
@@ -191,10 +191,10 @@ defaultSession _             "1" = "gentoo"
 defaultSession _             "8" = "reader"
 
 topics :: [Topic]
-topics = [[x] | x <- ['1'..'9']] ++ [['1', x] | x <- ['1'..'9']] -- "1" --> "19", skipping 10 & 0
+topics = [[x] | x <- ['1'..'9']]
 topConf :: String -> TopicConfig
 topConf hostname = def
-  { topicDirs = M.fromList [(show i, "~/") | i <- [1..9] ++ [11 .. 19]]
+  { topicDirs = M.fromList [(show i, "~/") | i <- [1..9]]
   , defaultTopic = "1"
   , defaultTopicAction = const $ return ()
   , topicActions = M.fromList
@@ -205,15 +205,15 @@ topConf hostname = def
       , ("5", spawn "EMACS_SERVER=DANCE_COMMANDER ~/conf/misc/scripts/emacs.sh /data/org/work/blackbox.org")
       , ("8", spawnTmuxSession $ defaultSession hostname "8")
       , ("9", spawnHere chat)
-      , ("11", spawnTmuxSession "logs")
-      , ("12", spawnRemoteSessions hostname)
-      , ("13", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
-      , ("14", spawnHere $ browser hostname "firefox" ++ " -P small")
-      , ("17", spawnTmuxSession "2mp")
-      --, ("17", spawnHere $ term ++ " -e tmux")
-
-      , ("18", spawn "VIM_SERVER=DANCE_COMMANDER ~/conf/misc/scripts/nvim.sh")
-      , ("19", spawnTmuxSession "chat")
+--      , ("11", spawnTmuxSession "logs")
+--      , ("12", spawnRemoteSessions hostname)
+--      , ("13", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
+--      , ("14", spawnHere $ browser hostname "firefox" ++ " -P small")
+--      , ("17", spawnTmuxSession "2mp")
+--      --, ("17", spawnHere $ term ++ " -e tmux")
+--
+--      , ("18", spawn "VIM_SERVER=DANCE_COMMANDER ~/conf/misc/scripts/nvim.sh")
+--      , ("19", spawnTmuxSession "chat")
       ]
   }
 
@@ -350,18 +350,13 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
     --, ((0,         xK_s),          shiftNextScreen >> nextScreen) -- TODO time proof this
     ])
   ]
-  ++ -- this could be in previous [], but this should be grouped with the next group of keyboard definitions:
-  [ ((modm, xK_0), windows (viewOnScreen 1 "18") >> currentTopicAction (topConf hostname)) ] -- raise dance commander on external monintor.
   ++
   [((m .|. modm, k), windows $ f i)
-    | (i, k) <- zip [[x] | x <- ['1'..'9']] [xK_1..xK_9] -- lest we forget: [x] -> char vs [char] = string in haskell --> "1" through "9"
-    , (f, m) <- [ (viewOnScreen 0, 0)
-    , (W.shift, shiftMask)]]
-  ++
-  [((m .|. modm, k), windows $ f i)
-    | (i, k) <- zip [['1', x] | x <- ['1'..'9']] [xK_1..xK_9] -- lest we forget: [x] -> char vs [char] = string in haskell --> "11" through "19"
-    , (f, m) <- [ (viewOnScreen 1, controlMask)
-    , (W.shift, controlMask .|. shiftMask)]]
+    | (i, k) <- zip [[i] | i <- ['1'..'9']] [xK_1..xK_9] -- lest we forget: [i] -> char vs [char] = string in haskell --> "1" through "9"
+    , (f, m) <- [ (W.greedyView, 0)
+                , (W.shift, shiftMask)]]
+  -- could add ctrl .|. modm for actions on
+  -- other screen.
 
 modalmode hostname toggleFadeSet conf@(XConfig {XMonad.modMask = modm}) = [ ((m `xor` modm, k), a >> (SM.submap . M.fromList $ modalmode hostname toggleFadeSet conf)) | ((m, k), a) <- ks hostname toggleFadeSet conf ]
 
