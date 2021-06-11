@@ -36,6 +36,7 @@ import XMonad.Actions.TopicSpace
 import XMonad.Actions.UpdatePointer
 import XMonad.Actions.WindowGo
 import XMonad.Actions.WithAll
+import XMonad.Actions.Warp
 
 -- utils
 import XMonad.Util.NamedScratchpad
@@ -252,13 +253,14 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
   , ((modm,                 xK_l),          nextWS)
   , ((modm,                 xK_space),      toggleWS)
 --, ((modm .|. shiftMask,   xK_space),      nextScreen) -- FIXME use for something else
-  , ((modm .|. controlMask, xK_space),      nextScreen) -- toggle screens/monitors
+  , ((modm .|. controlMask, xK_space),      nextScreen >> warpToWindow (1 % 2) (1 % 2)) -- toggle screens/monitors
   , ((modm,                 xK_u),          sendMessage Shrink) -- master size
   , ((modm,                 xK_i),          sendMessage Expand)
   , ((modm,                 xK_comma),      sendMessage (IncMasterN 1)) -- nb windows in master
   , ((modm,                 xK_period),     sendMessage (IncMasterN $ -1))
   , ((modm,                 xK_f),          sendMessage (Toggle FULL))
   , ((modm,                 xK_m),          windows W.swapMaster)
+  , ((modm .|. shiftMask,   xK_m),          warpToWindow (1 % 2) (1 % 2))
   , ((modm,                 xK_y),          currentTopicAction $ topConf hostname)
   , ((modm .|. shiftMask,   xK_b),          sendMessage ToggleStruts) -- Toggle the status bar gap -- Use this binding with avoidStruts from Hooks.ManageDocks.
   , ((modm,                 xK_t),          sinkAll) --  Push windows back into tiling
