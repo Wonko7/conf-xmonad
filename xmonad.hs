@@ -205,7 +205,7 @@ topConf hostname = def
       , ("4", spawnHere $ browser hostname "firefox" ++ " -P uman")
       , ("5", spawn "EMACS_SERVER=DANCE_COMMANDER ~/conf/misc/scripts/emacs.sh /data/org/work/blackbox.org")
       , ("8", spawnTmuxSession $ defaultSession hostname "8")
-      , ("9", spawnHere chat)
+      , ("9", spawn "EMACS_SERVER=COMMUNICATION ~/conf/misc/scripts/emacs.sh")
 --      , ("11", spawnTmuxSession "logs")
 --      , ("12", spawnRemoteSessions hostname)
 --      , ("13", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
@@ -226,7 +226,7 @@ loghook toggleFadeSet = historyHook >> fadeOutLogHook (fadeIf (fadeCondition tog
 
 fadeCondition :: IORef (DS.Set Window) -> Query Bool
 fadeCondition floats =
-  (isUnfocused <||> (className =? "Conky"))
+  (isUnfocused <||> (className =? "conky"))
   <&&> (join . asks $ \w -> liftX . io $ DS.notMember w `fmap` readIORef floats)
 
 toggleFadeOut :: Window -> DS.Set Window -> DS.Set Window
@@ -252,7 +252,6 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
   , ((modm,                 xK_h),          prevWS)
   , ((modm,                 xK_l),          nextWS)
   , ((modm,                 xK_space),      toggleWS)
---, ((modm .|. shiftMask,   xK_space),      nextScreen) -- FIXME use for something else
   , ((modm .|. controlMask, xK_space),      nextScreen >> warpToWindow (1 % 2) (1 % 2)) -- toggle screens/monitors
   , ((modm,                 xK_u),          sendMessage Shrink) -- master size
   , ((modm,                 xK_i),          sendMessage Expand)
