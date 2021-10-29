@@ -200,7 +200,7 @@ topConf hostname = def
   , defaultTopicAction = const $ return ()
   , topicActions = M.fromList
       [ ("1", spawnTmuxSession $ defaultSession hostname "1")
-      , ("2", spawnRemoteSessions hostname)
+      , ("2", spawnCmd "ssh -YC rocinante.underage.wang x2x -north -to :1")
       , ("3", spawnHere "~/local/tor-browser_en-US/Browser/start-tor-browser")
       , ("4", spawnHere $ browser hostname "firefox" ++ " -P uman")
       , ("5", spawn "EMACS_SERVER=DANCE_COMMANDER ~/conf/misc/scripts/emacs.sh /data/org/work/blackbox.org")
