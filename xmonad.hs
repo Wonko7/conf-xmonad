@@ -161,7 +161,7 @@ browser "enterprise"  "chrome"   = "google-chrome-stable"
 browser "yggdrasill"  "chrome"   = "firejail google-chrome-stable"
 browser _             "chrome"   = "google-chrome-stable"
 browser "enterprise"  "chromium" = "chromium"
-browser "yggdrasill"  "chromium" = "firejail chromium"
+browser "yggdrasill"  "chromium" = "chromium"
 browser _             "chromium" = "chromium"
 
 spawnRemoteSessions "yggdrasill"  =  spawnRemoteTmuxSession "nostromo.underage.wang" "remote"
@@ -265,7 +265,7 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
   , ((modm,                 xK_t),          sinkAll) --  Push windows back into tiling
     -- window stuff:
   , ((modm .|. shiftMask,   xK_c),          kill)
-  , ((modm,                 xK_c),          spawn "~/conf/misc/scripts/dunst.sh close")
+  , ((modm,                 xK_c),          spawn "dunstctl close")
   , ((modm,                 xK_j),          windows W.focusDown)
   , ((modm,                 xK_k),          windows W.focusUp)
   , ((modm .|. shiftMask,   xK_j),          windows W.swapDown)
@@ -338,12 +338,10 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
     , ((0,         xK_i),          toggleWindowSpacingEnabled >> toggleScreenSpacingEnabled)
 
     -- dunst:
-    , ((0,         xK_c),          spawn "~/conf/misc/scripts/dunst.sh close_all")
-    , ((0,         xK_h),          spawn "~/conf/misc/scripts/dunst.sh history")
+    , ((0,         xK_c),          spawn "dunstctl close-all")
+    --, ((0,         xK_h),          spawn "dunstctl history")
     -- pause and resume dunst notifs
-    , ((0,         xK_quoteright), spawn "s6-svc -1 ~/conf/s6-services/dunst || killall -SIGUSR1 dunst; s6-svc -1 ~/conf/s6-services/notif || killall -SIGUSR1 notif;")
-    , ((shiftMask, xK_quoteright), spawn "s6-svc -2 ~/conf/s6-services/dunst || killall -SIGUSR2 dunst; s6-svc -2 ~/conf/s6-services/notif || killall -SIGUSR2 notif;")
-
+    , ((0,         xK_quoteright), spawn "dunstctl set-paused toggle")
     -- misc:
     , ((0,         xK_q),          spawn "xmonad --recompile; xmonad --restart")
     , ((0,         xK_k),          spawn xReset)
