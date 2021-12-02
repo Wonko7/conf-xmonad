@@ -240,7 +240,7 @@ ks hostname toggleFadeSet conf@XConfig {XMonad.modMask = modm} = [
     -- terminal stuff:
     ((modm, xK_Return),                     spawnHere $ term ++ " -e tmux")
   , ((modm .|. shiftMask,   xK_Return),     spawnHere term)
-  , ((modm .|. shiftMask,   xK_i),          spawnHere "urxvt") -- fallback term: FIXME use for something else.
+  , ((modm .|. shiftMask,   xK_i),          spawnHere $ term ++ " --small") -- fallback term: FIXME use for something else.
   , ((modm,                 xK_e),          spawn "EMACS_SERVER=DANCE_COMMANDER ~/conf/misc/scripts/emacs.sh")
 
   , ((modm,                 xK_r),          spawnHere "rofi -combi-modi window,drun,ssh -theme lb -font \"fira 30\" -show combi") -- themes: gruvbox-dark-soft, lb, Paper, solarized_alternate
